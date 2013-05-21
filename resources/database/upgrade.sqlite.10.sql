@@ -1,0 +1,1 @@
+ALTER TABLE rw_providers ADD COLUMN priority INTEGER DEFAULT(100)

@@ -1,0 +1,12 @@
+drop view rw_cache_status; 
+drop table rw_episodelinks;
+drop table rw_episodes;
+drop table rw_movielinks;
+drop table rw_movies;
+drop table rw_showlinks;
+drop table rw_shows;
+drop table rw_stream_cache;
+drop table rw_subscriptions;
+drop table rw_update_log;
+drop table rw_update_status;
+drop table rw_providers;
