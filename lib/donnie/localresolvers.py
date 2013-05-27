@@ -1,16 +1,15 @@
 import urllib2, urllib, sys, os, re
 import htmlcleaner
-import xbmc
+import xbmc, xbmcgui
 from BeautifulSoup import BeautifulSoup, Tag, NavigableString
 from t0mm0.common.net import Net
 from t0mm0.common.addon import Addon
 net = Net()
 
 class localresolver():
-	def __init__(self, url, REG=None):
+	def __init__(self, REG=None):
 		if REG:
 			self.REG=REG
-		self.url = url
 		self.resolved_url = ''
 		self.data_path = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.theroyalwe'), '')
 		self.cookie_path = os.path.join(xbmc.translatePath(self.data_path + 'cookies'), '')
@@ -30,91 +29,108 @@ class localresolver():
 			msg = msg % v
 		if (self.LOGGING_LEVEL == '1' or level==0):
 			print msg
-	def resolve(self):
+	def resolve(self, url):
+		self.url = url
 		self.host = self.which_host()
-		if self.host == 'movreel.com': self.resolve_movreel()
+		self.log('Attempting resolver: %s' % self.host)
+		if self.host == 'megarelease.org': self.resolve_megarelease()
+		if self.host == '180upload.com': self.resolve_180upload()
 		return self.resolved_url
 
 
 	def which_host(self):
 		print "validating: %s" % self.url
 		if re.match('http://(www.)?movreel.com/', self.url): return 'movreel.com'
+		elif re.match('http://(www.)?180upload.com/', self.url): return '180upload.com'
+		elif re.match('http://(www.)?(megarelease.org|lemuploads.com)/', self.url): return 'megarelease.org'
 
 
 
-	def resolve_movreel(self):
-		url = self.url
-		silent = True
+	def resolve_megarelease(self):
+		resolved_url = ''
+		self.log('MegaRelease - Requesting GET URL: %s', self.url)
+		html = net.http_GET(self.url).content
 		try:
-			if self.getBoolSetting('movreel-account'):
-				cookiejar = os.path.join(self.cookie_path,'movreel.lwp')
-				if os.path.exists(cookiejar):			 	
-					self.log('Movreel - Setting Cookie file')
-			 		net.set_cookies(cookiejar)
-				else:
-					self.login_movreel()
-
-			if not silent: dialog = xbmcgui.DialogProgress()
-        		if not silent: dialog.create('Resolving', 'Resolving Movreel Link...')       
-        		if not silent: dialog.update(0)
-       			self.log('Movreel - Requesting GET URL: %s', url)
-        		html = net.http_GET(url).content
-        
-        		if not silent: dialog.update(33)
-
-			if re.search('This server is in maintenance mode', html):
-           			print '***** Movreel - Site reported maintenance mode'
-            			raise Exception('File is currently unavailable on the host')
-
-			#Set POST data values
-			op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-			usr_login = re.search('<input type="hidden" name="usr_login" value="(.*?)">', html).group(1)
-			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-			fname = re.search('<input type="hidden" name="fname" value="(.+?)">', html).group(1)
-			method_free = re.search('<input type="submit" name="method_free" style=".+?" value="(.+?)">', html).group(1)
-		
-			data = {'op': op, 'usr_login': usr_login, 'id': postid, 'referer': url, 'fname': fname, 'method_free': method_free}
-		
-			self.log('Movreel - Requesting POST URL: %s DATA: %s',(url, data))
-			html = net.http_POST(url, data).content
-
-			if not silent: dialog.update(66)
-		
-			#Set POST data values
-			op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
+			op = 'download2'
+			btn_download = 'Continue'
+	
 			rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
-			method_free = re.search('<input type="hidden" name="method_free" value="(.+?)">', html).group(1)
-		
-			data = {'op': op, 'id': postid, 'rand': rand, 'referer': url, 'method_free': method_free, 'down_direct': 1}
+			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
+			method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
+			method_premium = re.search('<input type="hidden" name="method_premium" value="(.*?)">', html).group(1)
+			down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
+			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'method_premium': method_premium, 'down_direct': down_direct, 'btn_download': btn_download}
 
-			self.log('Movreel - Requesting POST URL: %s DATA: %s', (url, data))
-			html = net.http_POST(url, data).content
-		
-			if not silent: dialog.update(100)
-			link = re.search('<a id="lnk_download" href="(.+?)">Download Original Video</a>', html, re.DOTALL).group(1)
-			if not silent: dialog.close()
-			self.resolved_url = link
+			self.log('MegaRelease - Requesting POST URL: %s DATA: %s', (self.url, data))
+			html = net.http_POST(self.url, data).content
+
+			soup = BeautifulSoup(html)
+			span = soup.find('span', {'style' : 'background:#f9f9f9;border:1px dotted #bbb;padding:7px;'})
+			a = span.find('a')
+			resolved_url = a['href']
 		except Exception, e:
-			print '**** Movreel Error occured: %s' % e
+			print '**** MegaRelease Error occured: %s' % e
 			raise
 
-	def login_movreel(self):
-		loginurl='http://www.movreel.com/login.html'
-		op = 'login'
-		login = self.getSetting('movreel-username')
-		password = self.getSetting('movreel-password')
-		data = {'op': op, 'login': login, 'password': password}
-		cookiejar = os.path.join(self.cookie_path,'movreel.lwp')
-		try:
-			html = net.http_POST(loginurl, data).content
-		     	if re.search('op=logout', html):
-		        	net.save_cookies(cookiejar)
-		     	else:
-		        	print '**** Movreel Account: login failed'
-		except Exception, e:
-		     	print '**** Movreel Error: %s' % e
-		     	pass
+			
+		self.resolved_url = resolved_url
 		
 
+	def getCapText(self):
+		capcode = ''
+		puzzle_img = os.path.join(self.data_path, "puzzle.png")
+		img = xbmcgui.ControlImage(450,15,400,130, puzzle_img)
+		wdlg = xbmcgui.WindowDialog()
+		wdlg.addControl(img)
+		wdlg.show()
+		xbmc.sleep(2000)
+		kb = xbmc.Keyboard('', 'Type the letters in the image', False)
+           	kb.doModal()
+           	capcode = kb.getText()
+		if (kb.isConfirmed()):
+               		userInput = kb.getText()
+               		if userInput != '':
+                   		capcode = kb.getText()
+               		elif userInput == '':
+                   		return False
+           	else:
+               		return False
+               
+           	wdlg.close()
+		return capcode
 	
+	def resolve_180upload(self):
+		resolved_url = ''
+		self.log('180upload - Requesting GET URL: %s', self.url)
+		html = net.http_GET(self.url).content
+		try:
+			op = 'download2'
+			btn_download = 'Continue'
+		
+			rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
+			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
+			method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
+			method_premium = re.search('<input type="hidden" name="method_premium" value="(.*?)">', html).group(1)
+			down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
+
+			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'method_premium': method_premium, 'down_direct': down_direct, 'btn_download': btn_download}
+
+			puzzle_img = os.path.join(self.data_path, "puzzle.png")
+			solvemedia = re.search('<iframe src="(http://api.solvemedia.com.+?)"', html)
+			if solvemedia:
+				html = net.http_GET(solvemedia.group(1)).content
+           			hugekey=re.search('id="adcopy_challenge" value="(.+?)">', html).group(1)
+           			open(puzzle_img, 'wb').write(net.http_GET("http://api.solvemedia.com%s" % re.search('<img src="(.+?)"', html).group(1)).content)
+				solution = self.getCapText()
+			if solution:
+               			data.update({'adcopy_challenge': hugekey,'adcopy_response': solution})
+			html = net.http_POST(self.url, data).content
+			soup = BeautifulSoup(html)
+			print soup
+        		link = re.search('<a href="(.+?)" onclick="thanks\(\)">Download now!</a>', html)
+			self.resolved_url = link.group(1)
+		except Exception, e:
+			print '**** MegaRelease Error occured: %s' % e
+			raise
+		self.resolved_url = resolved_url
+

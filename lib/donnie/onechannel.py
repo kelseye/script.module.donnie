@@ -378,11 +378,17 @@ class OneChannelServiceSracper(CommonScraper):
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = re.search('- (.+?) \(', link).group(1)	
-		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
+		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
 			"SELECT ?, ?, priority " \
 			"FROM rw_providers " \
 			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])
+		self.DB.execute(SQL, [link, stream, host, self.service])'''
+		
+		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
+		"SELECT ?, ?, priority, ? " \
+		"FROM rw_providers " \
+		"WHERE mirror=? and provider=?"
+		self.DB.execute(SQL, [link, stream, self.REG.getSetting('machine-id'), host, self.service])
 	
 	def resolveLink(self, link):
 		resolved_url = None

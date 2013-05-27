@@ -213,16 +213,6 @@ class IcefilmsServiceSracper(CommonScraper):
 			url = self.getServices(episodeid=episodeid, movieid=movieid)
 		if not url:
 			return
-		'''if self.ENABLE_MIRROR_CACHING:
-			if url:
-				print url
-				cache_url = url
-			else:
-				return 	
-			cached = self.checkStreamCache(cache_url)
-			if len(cached) > 0:
-				self.log("Loading streams from cache")
-				return cached'''
 			
 		self.log("Locating streams for provided by service: %s", self.service)
 		pagedata = self.getURL(url, append_base_url=True)		
@@ -259,18 +249,15 @@ class IcefilmsServiceSracper(CommonScraper):
 			for mirror in mirrors:
 				links = mirror.findAll("a")
 				for link in links:
+					#print link
 					provider = self.getProvider(link)
 					if not provider:
 						pass
 					else:
 						self.log(provider + ' - ' + definition)
 						providerid = link['onclick'][3:len(link['onclick'])-1]
-						#streams.append(['Icefilms ' + provider + ' - ' + definition, self.service + '://' + providerid])				
 						self.getStreamByPriority('Icefilms ' + provider + ' - ' + definition, self.service + '://' + providerid)
-						#if self.ENABLE_MIRROR_CACHING:
-						#	self.cacheStreamLink(cache_url, 'Icefilms ' + provider + ' - ' + definition, self.service + '://' + providerid)
 		self.DB.commit()
-		#return streams
 
 
 	def _resolveStream(self, stream):
@@ -295,12 +282,15 @@ class IcefilmsServiceSracper(CommonScraper):
 		self.log('raw_url: %s', raw_url)
 		try:
 			resolved_url = urlresolver.HostedMediaFile(url=raw_url).resolve()
-		except:
+		except: pass
+
+		if not resolved_url:
 			self.log('Unable to resolve using urlresolver')
 			resolved_url = self.resolveLink(raw_url)
-			if not resolved_url:
-				print "Unable to resolve url, sorry!"
-		#self.logHost(self.service, raw_url)
+
+		if not resolved_url:
+			resolved_url = ''						
+			print "Unable to resolve url, sorry!"
 		return resolved_url
 
 	def _resolveIMDB(self, uri):
@@ -333,11 +323,11 @@ class IcefilmsServiceSracper(CommonScraper):
 		else:
 			offset = 0
 		
-		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
-			"SELECT ?, ?, (priority + %s) " \
+		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
+			"SELECT ?, ?, (priority + %s), ? " \
 			"FROM rw_providers " \
 			"WHERE mirror=? and provider=?" % offset
-		self.DB.execute(SQL, [link, stream, host, self.service])
+		self.DB.execute(SQL, [link, stream, self.REG.getSetting('machine-id'), host, self.service])
 
 	def getProvider(self, link):
 		self.log("Getting provider")
@@ -357,6 +347,8 @@ class IcefilmsServiceSracper(CommonScraper):
                 isjumbo = re.search('Hosted by JumboFiles', str(link))
                 ismovreel = re.search('Hosted by Movreel', str(link))
                 isbillion = re.search('Hosted by BillionUploads', str(link))
+		ismega = re.search('Hosted by MegaRelease', str(link))
+		islem = re.search('Hosted by LemUploads', str(link))
 
                 if is2shared:
 			enabled = self.checkProviders('2shared.com')
@@ -391,227 +383,14 @@ class IcefilmsServiceSracper(CommonScraper):
                 elif isbillion:
 			enabled = self.checkProviders('billionuploads.com')
                 	opt=opt+': billionuploads.com'
+                elif ismega:
+			enabled = self.checkProviders('megarelease.org')
+                	opt=opt+': megarelease.org'
+                elif islem:
+			enabled = self.checkProviders('lemuploads.com')
+                	opt=opt+': lemuploads.com'
 		if not enabled:
 			return False
 		return opt
 
-	def whichProviderType(self, link):
-		link_type = ''
-		is2shared = re.search('Hosted by 2Shared', str(link))
-                israpid = re.search('Hosted by RapidShare', str(link))
-                is180 = re.search('Hosted by 180upload', str(link))
-		isspeedy = re.search('speedy\.sh/', str(link))
-                isvidhog = re.search('Hosted by VidHog', str(link))
-                isuploadorb = re.search('Hosted by UploadOrb', str(link))
-                issharebees = re.search('Hosted by ShareBees', str(link))
-                isglumbo = re.search('Hosted by GlumboUploads', str(link))
-                isjumbo = re.search('Hosted by JumboFiles', str(link))
-                ismovreel = re.search('movreel\.com', str(link))
-                isbillion = re.search('billionuploads\.com', str(link))
-
-		if is2shared:
-			link_type = '2S'
-                elif israpid:
-                 	link_type = 'RS'
-                elif is180:
-                      	link_type = '180'
-                elif isspeedy:
-                 	link_type = 'SS'
-                elif isvidhog:
-                	link_type = 'VH'
-                elif isuploadorb:
-                	link_type = 'UO'
-                elif issharebees:
-                	link_type = 'SB'
-                elif isglumbo:
-                	link_type = 'GU'
-                elif isjumbo:
-                	link_type = 'JF'
-                elif ismovreel:
-                	link_type = 'MR'
-                elif isbillion:
-                	link_type = 'BU'
-		return link_type
-	
-	def resolveLink(self, link):
-		resolved_url = None
-		self.log("Attempting local resolver", level=0)
-		link_type = self.whichProviderType(link)
-		if link_type == 'BU':
-			resolved_url = self.resolve_billionuploads(link)
-			self.log("BillionUploads returned: %s", resolved_url)
-		elif link_type == 'MR':
-			resolved_url = self.resolve_movreel(link)
-			self.log("Movreel returned: %s", resolved_url)
-		elif link_type == 'VH':
-			resolved_url = self.resolve_vidhog(link)
-			self.log("VidHog returned: %s", resolved_url)
-		return resolved_url
-
-	
-	def resolve_vidhog(self, url):
-		link = ''
-		return link
-
-
-	def resolve_billionuploads(self, url):
-		link = ''
-		silent = True
-		try:
-			#Show dialog box so user knows something is happening
-			if not silent: dialog = xbmcgui.DialogProgress()
-			#dialog.create('Resolving', 'Resolving BillionUploads Link...')       
-			#dialog.update(0)
-		
-			self.log('BillionUploads - Requesting GET URL: %s', url)
-			html = net.http_GET(url).content
-		       
-			#Check page for any error msgs
-			if re.search('This server is in maintenance mode', html):
-				print '***** BillionUploads - Site reported maintenance mode'
-				raise Exception('File is currently unavailable on the host')
-
-			#Captcha
-			try:
-				captchaimg = re.search('<img src="(http://BillionUploads.com/captchas/.+?)"', html).group(1)
-				print captchaimg
-				#dialog.close()
-		
-				#Grab Image and display it
-				img = xbmcgui.ControlImage(550,15,240,100,captchaimg)
-				wdlg = xbmcgui.WindowDialog()
-				wdlg.addControl(img)
-				wdlg.show()
-		
-				#Small wait to let user see image
-				#time.sleep(3)
-			
-				#Prompt keyboard for user input
-				kb = xbmc.Keyboard('', 'Type the letters in the image', False)
-				kb.doModal()
-				capcode = kb.getText()
-			
-				#Check input
-				if (kb.isConfirmed()):
-					userInput = kb.getText()
-					if userInput != '':
-						capcode = kb.getText()
-					elif userInput == '':
-						Notify('big', 'No text entered', 'You must enter text in the image to access video', '')
-						return None
-				else:
-					return None
-				wdlg.close()
-			except:
-				capcode = None
-				pass
-			
-
-			#They need to wait for the link to activate in order to get the proper 2nd page
-			#dialog.close()
-			#do_wait('Waiting on link to activate', '', 3)
-			xbmc.sleep(3000)      
-			#dialog.create('Resolving', 'Resolving BillionUploads Link...') 
-			#dialog.update(50, 'Resolving', 'Resolving BillionUploads Link...')
-			
-			#Set POST data values
-			op = 'download2'
-			rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
-			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-			method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
-			down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
-				
-			if capcode:		
-				data = {'op': op, 'rand': rand, 'id': postid, 'referer': url, 'method_free': method_free, 'down_direct': down_direct, 'code': capcode}
-			else:
-				data = {'op': op, 'rand': rand, 'id': postid, 'referer': url, 'method_free': method_free, 'down_direct': down_direct}
-		
-			self.log('BillionUploads - Requesting POST URL: %s DATA: %s', (url, data))
-			html = net.http_POST(url, data).content
-			#dialog.update(100)
-			link = re.search('&product_download_url=(.+?)"', html).group(1)
-			link = link + "|referer=" + url
-			#dialog.close()
-			
-			return link
-		except Exception, e:
-			print '**** BillionUploads Error occured: %s' % e
-			raise
-	
-	def login_movreel(self):
-		loginurl='http://www.movreel.com/login.html'
-		op = 'login'
-		login = self.getSetting('movreel-username')
-		password = self.getSetting('movreel-password')
-		data = {'op': op, 'login': login, 'password': password}
-		cookiejar = os.path.join(self.cookie_path,'movreel.lwp')
-		
-		try:
-			html = net.http_POST(loginurl, data).content
-		     	if re.search('op=logout', html):
-		        	net.save_cookies(cookiejar)
-		     	else:
-		        	Notify('big','Movreel','Login failed.', '')
-		        	self.log('Movreel Account: login failed', level=0)
-		except Exception, e:
-		     	print '**** Movreel Error: %s' % e
-		     	Notify('big','Movreel Login Failed','Failed to connect with Movreel.', '', '', 'Please check your internet connection.')
-		     	pass	
-
-
-	def resolve_movreel(self, url):
-		silent = True
-		try:
-			if self.getBoolSetting('movreel-account'):
-				cookiejar = os.path.join(self.cookie_path,'movreel.lwp')
-				if os.path.exists(cookiejar):			 	
-					self.log('Movreel - Setting Cookie file')
-			 		net.set_cookies(cookiejar)
-				else:
-					self.login_movreel()
-
-			if not silent: dialog = xbmcgui.DialogProgress()
-        		if not silent: dialog.create('Resolving', 'Resolving Movreel Link...')       
-        		if not silent: dialog.update(0)
-       			self.log('Movreel - Requesting GET URL: %s', url)
-        		html = net.http_GET(url).content
-        
-        		if not silent: dialog.update(33)
-
-			if re.search('This server is in maintenance mode', html):
-           			print '***** Movreel - Site reported maintenance mode'
-            			raise Exception('File is currently unavailable on the host')
-
-			#Set POST data values
-			op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-			usr_login = re.search('<input type="hidden" name="usr_login" value="(.*?)">', html).group(1)
-			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-			fname = re.search('<input type="hidden" name="fname" value="(.+?)">', html).group(1)
-			method_free = re.search('<input type="submit" name="method_free" style=".+?" value="(.+?)">', html).group(1)
-		
-			data = {'op': op, 'usr_login': usr_login, 'id': postid, 'referer': url, 'fname': fname, 'method_free': method_free}
-		
-			self.log('Movreel - Requesting POST URL: %s DATA: %s',(url, data))
-			html = net.http_POST(url, data).content
-
-			if not silent: dialog.update(66)
-		
-			#Set POST data values
-			op = re.search('<input type="hidden" name="op" value="(.+?)">', html).group(1)
-			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-			rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
-			method_free = re.search('<input type="hidden" name="method_free" value="(.+?)">', html).group(1)
-		
-			data = {'op': op, 'id': postid, 'rand': rand, 'referer': url, 'method_free': method_free, 'down_direct': 1}
-
-			self.log('Movreel - Requesting POST URL: %s DATA: %s', (url, data))
-			html = net.http_POST(url, data).content
-		
-			if not silent: dialog.update(100)
-			link = re.search('<a id="lnk_download" href="(.+?)">Download Original Video</a>', html, re.DOTALL).group(1)
-			if not silent: dialog.close()
-			return link
-		except Exception, e:
-			print '**** Movreel Error occured: %s' % e
-			raise
 

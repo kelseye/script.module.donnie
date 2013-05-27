@@ -30,6 +30,8 @@ INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "vidhog.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "uploadorb.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "glumbouploads.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "jumbofiles.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "lemuploads.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "megarelease.org");
 
 INSERT INTO rw_providers(provider, mirror) VALUES("wareztuga", "putlocker.com");
 

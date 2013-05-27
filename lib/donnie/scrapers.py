@@ -696,3 +696,12 @@ class CommonScraper:
 		for row in rows:
 			self.provides.append(row[0])
 		self.log(self.provides)
+
+	def resolveLink(self, link):
+		
+		resolved_url = None
+		self.log("Attempting local resolver", level=0)
+		from localresolvers import localresolver 
+		Resolver = localresolver(REG=self.REG)
+		resolved_url = Resolver.resolve(link)
+		return resolved_url

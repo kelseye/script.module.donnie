@@ -141,11 +141,16 @@ class FurkServiceSracper(CommonScraper):
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = 'furk.net'
-		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
+		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
 			"SELECT ?, ?, priority " \
 			"FROM rw_providers " \
 			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])
+		self.DB.execute(SQL, [link, stream, host, self.service])'''
+		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
+			"SELECT ?, ?, priority, ? " \
+			"FROM rw_providers " \
+			"WHERE mirror=? and provider=?"
+		self.DB.execute(SQL, [link, stream, self.REG.getSetting('machine-id'), host, self.service])
 
 	def _getServicePriority(self, link):
 		self.log(link)

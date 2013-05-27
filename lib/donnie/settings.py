@@ -5,9 +5,17 @@ from BeautifulSoup import BeautifulSoup, Tag, NavigableString
 
 class Settings():
 	def __init__(self, ids=[]):
+		self.default = 'plugin.video.theroyalwe'
 		self._bin = {}
+		if not xbmcaddon.Addon(id=self.default).getSetting('machine-id'):
+			import time, hashlib
+			seed = str(time.time()*100)
+			m = hashlib.md5()
+			m.update(seed)
+			xbmcaddon.Addon(id=self.default).setSetting('machine-id', m.hexdigest())
 		for id in ids:
 			self.loadSettings(id)
+		self.loadAdvancedSettings()
 
 	def loadSettings(self, id=''):
 		self.addon = xbmcaddon.Addon(id=id)
@@ -16,16 +24,33 @@ class Settings():
 		
 		for key in xml.findAll('setting'):
 			self.putSetting(key['id'], key['value'])
-			
+	
+	def loadAdvancedSettings(self):
+		xmlfile = os.path.join(xbmc.translatePath('special://profile/addon_data/' + self.default), 'advancedsettings.xml')
+		if not os.path.exists(xmlfile):
+			return True
+		xml = self.readfile(xmlfile, soup=True)
+		keys =['limitresults', 'fullcontextmenu']
+		defaults = {'limitresults': 'false', 'fullcontextmenu': 'false' }
+		for key in keys:
+			value = xml.find(key)
+			if value:
+				self.putSetting(key, value.string)
+			else:
+				self.putSetting(key, defaults[key])
 
 	def putSetting(self, key, value):
 		self._bin[key] = value
 		
 	def getSetting(self, key):
-		return self._bin[key]
+		try:
+			return self._bin[key]
+		except: return None
 	
 	def getBoolSetting(self, key):
-		return self.str2bool(self.getSetting(key))
+		try:
+			return self.str2bool(self.getSetting(key))
+		except: return None
 
 	def str2bool(self, v):
 		return v.lower() in ("yes", "true", "t", "1")

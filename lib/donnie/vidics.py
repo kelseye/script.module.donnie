@@ -74,24 +74,26 @@ class VidicsServiceSracper(CommonScraper):
 		soup = BeautifulSoup(pagedata)
 		shows = soup.findAll('div', {'class' : 'tvshow_img'})
 		for show in shows:
+			try:
+				links = show.findAll('a')
+				a = links[1]
+				name = a['title']
+				name = name[6:len(name)-13]
+				href = a['href']
+				year = re.search('-\d{4}\.html', href).group(0)
+				year = year[1:len(year)-5]
+				name = "%s (%s)" % (name, year)
+				if not silent:
+					pDialog.update(percent, self.service + ' page: ' + str(page), name)
+				character = self.getInitialChr(name)
 
-			links = show.findAll('a')
-			a = links[1]
-			name = a['title']
-			name = name[6:len(name)-13]
-			href = a['href']
-			year = re.search('-\d{4}\.html', href).group(0)
-			year = year[1:len(year)-5]
-			name = "%s (%s)" % (name, year)
-			if not silent:
-				pDialog.update(percent, self.service + ' page: ' + str(page), name)
-			character = self.getInitialChr(name)
-
-			genre_links = show.parent.findAll('a', {'class' : 'movies_genre'})
-			genres = []
-			for genre in genre_links:
-				genres.append(str(genre.string))
-			self.addShowToDB(name, href, character, year, genres)
+				genre_links = show.parent.findAll('a', {'class' : 'movies_genre'})
+				genres = []
+				for genre in genre_links:
+					genres.append(str(genre.string))
+				self.addShowToDB(name, href, character, year, genres)
+			except:
+				self.log('**** Malformed entry')
 
 		if page == 1:
 			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'tvshows'])
@@ -262,11 +264,17 @@ class VidicsServiceSracper(CommonScraper):
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = re.search('- (.+?)$', link).group(1)	
-		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
+		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
 			"SELECT ?, ?, priority " \
 			"FROM rw_providers " \
 			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])
+		self.DB.execute(SQL, [link, stream, host, self.service])'''
+
+		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
+			"SELECT ?, ?, priority, ? " \
+			"FROM rw_providers " \
+			"WHERE mirror=? and provider=?"
+		self.DB.execute(SQL, [link, stream, self.REG.getSetting('machine-id'), host, self.service])
 
 	def _getServicePriority(self, link):
 		self.log(link)

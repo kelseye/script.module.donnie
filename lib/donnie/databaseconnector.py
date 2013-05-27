@@ -3,7 +3,7 @@ import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 from t0mm0.common.addon import Addon
 IGNORE_UNIQUE_ERRORS = True
 SILENT_STATEMENTS = True
-DATABASE_VERSION = 13
+DATABASE_VERSION = 14
 
 def str2bool(v):
 		return v.lower() in ("yes", "true", "t", "1")
