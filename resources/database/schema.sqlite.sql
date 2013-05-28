@@ -32,6 +32,6 @@ CREATE TABLE IF NOT EXISTS "rw_host_log" ( "hostid" INTEGER PRIMARY KEY AUTOINCR
 
 CREATE TABLE IF NOT EXISTS "rw_status" (  "statusid" INTEGER PRIMARY KEY,   updating INTEGER DEFAULT 0,   last_subscription_update DATETIME,  last_tvshow_update DATETIME,  last_movie_update DATETIME,  job TEXT, UNIQUE (statusid, updating) ON CONFLICT IGNORE);
 
-CREATE TABLE IF NOT EXISTS rw_stream_list ( "streamid" INTEGER  PRIMARY KEY AUTOINCREMENT,  "stream" TEXT,  "url" TEXT,  "priority" REAL );
+CREATE TABLE IF NOT EXISTS rw_stream_list ( "streamid" INTEGER  PRIMARY KEY AUTOINCREMENT,  "stream" TEXT,  "url" TEXT,  "priority" REAL, "machineid" TEXT );
 
 CREATE VIEW IF NOT EXISTS rw_cache_status AS SELECT type, provider, (((julianday('now') - 2440587.5) - (julianday(ts) - 2440587.5) ) > 7) AS stale FROM rw_update_log;

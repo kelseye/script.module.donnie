@@ -31,33 +31,31 @@ class OneChannelServiceSracper(CommonScraper):
 
 
 	def _getShows(self, silent=False):
-		if self.isFresh('tvshows'):
-			self._getRecentShows(silent=silent)
-			return
-
 		self.log("Getting All shows for %s", self.service)
 		pDialog = xbmcgui.DialogProgress()
-		uri = '/alltvshows.php'
 		if not silent:
 			pDialog.create('Downloading shows from ' + self.service)
-		pagedata = self.getURL(uri, append_base_url=True)
+			pDialog.update(0, self.service, '')
+		uri = 'index.php?tv=&sort=release'
+		pagedata = self.getURL(uri, append_base_url=True)		
 		if pagedata=='':
-			return False
+			return
 		soup = BeautifulSoup(pagedata)
-		shows = soup.findAll('div', {'class' : 'all_movies_item'})
-		findYear = re.compile('\[ (.+?) \]')
-		for show in shows:
-			a = show.find('a')
-			name = a.string
-			href = a['href']
-			year = str(show)
-			year = findYear.search(year).group(1)
-			character = self.getInitialChr(name)
-			name = "%s (%s)" % (name, year)
-			self.addShowToDB(name, href, character, year)
-			if not silent:
-				percent = int((100 * shows.index(show))/len(shows))
-				pDialog.update(percent, self.service, self.cleanName(name))
+		div = soup.find('div', {'class': 'pagination'})
+		links = div.findAll('a')
+		a = links[len(links)-1]
+		pages = re.search('&page=(.+?)$', a['href']).group(1)
+		row = self.DB.query("SELECT current, full FROM rw_update_status WHERE identifier='tvshows' AND provider=?", [self.service])
+		if len(row) > 0:
+			offset = int(pages) - int(row[1])		
+			current = int(row[0]) + offset - 1
+		else:
+			current = pages
+
+		for page in reversed(range(1,int(current)+1)):
+			percent = int((100 * (int(pages) - page))/int(pages))
+			if not self._getShowsByPg(str(page), pages, pDialog, percent, silent):
+				break
 			if not silent:
 				if (pDialog.iscanceled()):
 					print 'Canceled download'
@@ -68,62 +66,46 @@ class OneChannelServiceSracper(CommonScraper):
 		self.DB.commit()
 		self.update_cache_status("tvshows")
 		self.log('Dowload complete!', level=0)
-
-	def _getRecentShows(self, silent):
-		self.log("Getting recent shows for: %s", self.service)
-		url = '?tv=&sort=release'
-		pDialog = xbmcgui.DialogProgress()
-		if not silent:
-			pDialog.create('Caching recent shows from ' + self.service)
-			pDialog.update(0, url, '')
 	
 
-		pagedata = self.getURL(url, append_base_url=True)
-		if pagedata=='':
-			return False
-		#print pagedata
-		soup = BeautifulSoup(pagedata)
-		shows = soup.findAll("a", { "href" : re.compile(r"^/watch-") })	
-		findYear = re.compile('\((.+?)\)$')	
-		for show in shows:
-			try:			
-				url = show['href']
-				name = show['title']
-				name = name[6:len(name)]
-				character = self.getInitialChr(name)
-				year = findYear.search(name).group(1)
-				self.addShowToDB(name, url, character, year)
-			except:
-				pass 
-		for page in range(2,5):
-			percent = page * 5
-			self._getRecentShowsByPg(page, pDialog, percent, silent)
-		self.DB.commit()
-		self.update_cache_status("tvshows")
-		if not silent:		
-			pDialog.close()
-		return True
-
-	def _getRecentShowsByPg(self, page, pDialog, percent, silent):
-		uri = '/index.php?tv=&sort=release&page=' +str(page)
+	def _getShowsByPg(self, page, pages, pDialog, percent, silent):
+		self.log("getting TV Shows by %s", page)
+		uri = 'index.php?tv=&sort=release&page=%s' % page
 		pagedata = self.getURL(uri, append_base_url=True)
 		if pagedata=='':
 			return False
 		soup = BeautifulSoup(pagedata)
-		shows = soup.findAll("a", { "href" : re.compile(r"^/watch-") })
-		findYear = re.compile('\((.+?)\)$')		
+		shows = soup.findAll('div', {'class' : 'index_item index_item_ie'})
+		findYear = re.compile('\((\d{4})\)$')
 		for show in shows:
-			try:			
-				url = show['href']
-				name = show['title'].zfill(3)
+			
+			try:
+				a = show.find('a')
+				href = a['href']
+				name = a['title']
 				name = name[6:len(name)]
-				year = findYear.search(name).group(1)
-				if not silent:
-					pDialog.update(percent, self.service, name)
 				character = self.getInitialChr(name)
-				self.addShowToDB(name, url, character, year)
+				year = findYear.search(name).group(1)
+				genres = []
+				genre_temp = show.find('div', {'class' : 'item_categories'})
+				if genre_temp:
+					genre_links = genre_temp.findAll('a')
+					for genre in genre_links:
+						genres.append(str(genre.string))
+				self.addShowToDB(name, href, character, year, genres)
+				if not silent:
+					pDialog.update(percent, self.service + ' page: ' + str(page), name)
 			except:
 				pass
+			
+		if page == 1:
+			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'tvshows'])
+		else:		
+			self.DB.execute("REPLACE INTO rw_update_status(provider, identifier, current, full) VALUES(?, ?, ?, ?)", [self.service, 'tvshows', page, pages])
+		self.DB.commit()
+		return True
+
+
 	def _getNewEpisodes(self, silent=False):
 		self.log("Getting new episodes for %s", self.service)
 		episodes = []
@@ -170,68 +152,44 @@ class OneChannelServiceSracper(CommonScraper):
 		return True
 
 	def _getMovies(self, silent=False):
-		if self.isFresh('movies'):
-			self._getRecentMovies(silent=silent)
-			return
-
-		self.log("Getting All shows for %s", self.service)
-		pDialog = xbmcgui.DialogProgress()
-		uri = '/allmovies.php'
-		if not silent:
-			pDialog.create('Downloading movies from ' + self.service)
-			pDialog.update(0, self.service, '')
-		pagedata = self.getURL(uri, append_base_url=True)
-
-
-		
-		if pagedata=='':
-			return False
-		soup = BeautifulSoup(pagedata)
-		movies = soup.findAll('div', {'class' : 'all_movies_item'})
-		findYear = re.compile('\[ (.+?) \]')
-		for movie in movies:
-			a = movie.find('a')
-			year = str(movie)
-			year = findYear.search(year).group(1)
-			name = a.string
-			if name and year:
-				try:
-					name = "%s (%s)" % (name, year)
-					href = a['href']
-					character = self.getInitialChr(name)
-					self.addMovieToDB(name, href, self.service + '://' + href, character, year)
-					if not silent:
-						percent = int((100 * movies.index(movie))/len(movies))
-						pDialog.update(percent, self.service, self.cleanName(name))
-					if not silent:
-						if (pDialog.iscanceled()):
-							print 'Canceled download'
-							return
-				except:
-					pass
-
-		if not silent:		
-			pDialog.close()
-		self.DB.commit()
-		self.update_cache_status("movies")
-		self.log('Dowload complete!', level=0)
-
-	def _getRecentMovies(self, silent):
 		print "Getting recent movies for: " + self.service
 		pDialog = xbmcgui.DialogProgress()
+		uri = '/index.php?sort=release'
 		if not silent:
 			pDialog.create('Caching recent movies from ' + self.service)
 			pDialog.update(0, self.service, '')
-		for page in range(1,5):
-			percent = page * 5
-			self._getRecentMoviesByPg(page, pDialog, percent, silent)
+		pagedata = self.getURL(uri, append_base_url=True)		
+		if pagedata=='':
+			return
+		soup = BeautifulSoup(pagedata)
+		div = soup.find('div', {'class': 'pagination'})
+		links = div.findAll('a')
+		a = links[len(links)-1]
+		pages = re.search('&page=(.+?)$', a['href']).group(1)
+		row = self.DB.query("SELECT current, full FROM rw_update_status WHERE identifier='movies' AND provider=?", [self.service])
+		if len(row) > 0:
+			offset = int(pages) - int(row[1])		
+			current = int(row[0]) + offset - 1
+		else:
+			current = pages
+
+		for page in reversed(range(1,int(current)+1)):
+			percent = int((100 * (int(pages) - page))/int(pages))
+			if not self._getMoviesByPg(page, pages, pDialog, percent, silent):
+				break
+			if not silent:
+				if (pDialog.iscanceled()):
+					print 'Canceled download'
+					return
+
 		if not silent:		
 			pDialog.close()
 		self.DB.commit()
 		self.update_cache_status("movies")
 		self.log('Dowload complete!', level=0)
 
-	def _getRecentMoviesByPg(self, page, pDialog, percent, silent):
+
+	def _getMoviesByPg(self, page, pages, pDialog, percent, silent):
 		uri = '/index.php?sort=release&page=' + str(page)
 		pagedata = self.getURL(uri, append_base_url=True)		
 		if pagedata=='':
@@ -239,18 +197,35 @@ class OneChannelServiceSracper(CommonScraper):
 		soup = BeautifulSoup(pagedata)
 		divs = soup.findAll("div", {"class" : "index_item index_item_ie"})
 		for div in divs:
-			a = div.find('a', { "href" : re.compile(r"^/watch-") })
-			href = a['href']
-			title = a['title']
-			title = title[6:len(title)]
-			year = re.search('\((.+?)\)$', title).group(1)
-			character = self.getInitialChr(title)
-			imdb = re.search('^/watch-\d{1,10}', href).group(0)
-			self.addMovieToDB(title, href, self.service + '://' + href, character, year)
-			if not silent:
-				pDialog.update(percent, self.service + ': page ' + str(page), title)
+			try:
+				a = div.find('a', { "href" : re.compile(r"^/watch-") })
+				href = a['href']
+				title = a['title']
+				title = title[6:len(title)]
+				year = re.search('\((.+?)\)$', title)
+				if year:
+					year = year.group(1)
+				else:
+					year = '0000'
+				character = self.getInitialChr(title)
+				imdb = re.search('^/watch-\d{1,10}', href).group(0)
+				genres = []
+				genre_temp = div.find('div', {'class' : 'item_categories'})
+				if genre_temp:
+					genre_links = genre_temp.findAll('a')
+					for genre in genre_links:
+						genres.append(str(genre.string))
+				self.addMovieToDB(title, href, self.service + '://' + href, character, year, genres)
+				if not silent:
+					pDialog.update(percent, self.service + ': page ' + str(page), title)
+			except:
+				pass
+		if page == 1:
+			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'movies'])
+		else:		
+			self.DB.execute("REPLACE INTO rw_update_status(provider, identifier, current, full) VALUES(?, ?, ?, ?)", [self.service, 'movies', page, pages])
+		self.DB.commit()
 		return True
-	
 
 
 	def _getStreams(self, episodeid=None, movieid=None, directurl=None):
