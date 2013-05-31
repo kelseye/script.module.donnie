@@ -275,6 +275,7 @@ class CommonScraper:
 	def CreateStreamFile(self, name, episodeid=None, imdb=None, show=None, episode=None, season=None):
 		#print "Creating Strm file"
 		if episodeid:
+			season = str(int(season))
 			cleaned = self.CleanFileName(show, True)
 			showpath = os.path.join(self.TV_SHOWS_PATH, cleaned)
 			self.CreateDirectory(showpath)
@@ -598,6 +599,7 @@ class CommonScraper:
 	def addEpisodeToDB(self, showid, show, name, season, episode, url, createFiles=True):
 		#print "Adding episode: " + name
  		name = self.cleanName(name)
+		season = str(int(season))
 		try:		
 			row = self.DB.query("SELECT episodeid FROM rw_episodes WHERE showid=? AND season=? AND episode=?", [showid, season, episode])
 			episodeid = int(row[0])

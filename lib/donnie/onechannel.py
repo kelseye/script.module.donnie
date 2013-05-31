@@ -218,7 +218,8 @@ class OneChannelServiceSracper(CommonScraper):
 				self.addMovieToDB(title, href, self.service + '://' + href, character, year, genres)
 				if not silent:
 					pDialog.update(percent, self.service + ': page ' + str(page), title)
-			except:
+			except Exception, e:
+				print '******HTTP ERROR: %s' % e
 				pass
 		if page == 1:
 			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'movies'])
