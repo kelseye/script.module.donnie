@@ -252,6 +252,7 @@ class IcefilmsServiceSracper(CommonScraper):
 					#print link
 					provider = self.getProvider(link)
 					if not provider:
+						print "skipping %s" % link
 						pass
 					else:
 						self.log(provider + ' - ' + definition)
@@ -349,6 +350,8 @@ class IcefilmsServiceSracper(CommonScraper):
                 isbillion = re.search('Hosted by BillionUploads', str(link))
 		ismega = re.search('Hosted by MegaRelease', str(link))
 		islem = re.search('Hosted by LemUploads', str(link))
+		ishuge = re.search('Hosted by HugeFiles', str(link))
+		isentero = re.search('Hosted by EntroUpload', str(link))
 
                 if is2shared:
 			enabled = self.checkProviders('2shared.com')
@@ -389,6 +392,12 @@ class IcefilmsServiceSracper(CommonScraper):
                 elif islem:
 			enabled = self.checkProviders('lemuploads.com')
                 	opt=opt+': lemuploads.com'
+                elif ishuge:
+			enabled = self.checkProviders('hugefiles.net')
+                	opt=opt+': hugefiles.net'
+                elif isentero:
+			enabled = self.checkProviders('entroupload.com')
+                	opt=opt+': entroupload.com'
 		if not enabled:
 			return False
 		return opt

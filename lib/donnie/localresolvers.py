@@ -1,5 +1,6 @@
 import urllib2, urllib, sys, os, re
 import htmlcleaner
+import jsunpack
 import xbmc, xbmcgui
 from BeautifulSoup import BeautifulSoup, Tag, NavigableString
 from t0mm0.common.net import Net
@@ -34,8 +35,11 @@ class localresolver():
 		self.host = self.which_host()
 		self.log('Attempting resolver: %s' % self.host)
 		if self.host == 'megarelease.org': self.resolve_megarelease()
-		if self.host == '180upload.com': self.resolve_180upload()
-		if self.host == 'vidhog.com': self.resolve_vidhog()
+		elif self.host == '180upload.com': self.resolve_180upload()
+		elif self.host == 'vidhog.com': self.resolve_vidhog()
+		elif self.host == 'hugefiles.net': self.resolve_hugefiles()
+		elif self.host == 'entroupload.com': self.resolve_entroupload()
+		elif self.host == 'movreel.com': self.resolve_movreel()
 		return self.resolved_url
 
 
@@ -44,9 +48,54 @@ class localresolver():
 		if re.match('http://(www.)?movreel.com/', self.url): return 'movreel.com'
 		elif re.match('http://(www.)?180upload.com/', self.url): return '180upload.com'
 		elif re.match('http://(www.)?vidhog.com/', self.url): return 'vidhog.com'
+		elif re.match('http://(www.)?hugefiles.net/', self.url): return 'hugefiles.net'
+		elif re.match('http://(www.)?entroupload.com/', self.url): return 'entroupload.com'
 		elif re.match('http://(www.)?(megarelease.org|lemuploads.com)/', self.url): return 'megarelease.org'
 
+	def resolve_hugefiles(self):
+		resolved_url = ''
+		self.log('Hugefiles - Requesting GET URL: %s', self.url)
+		html = net.http_GET(self.url).content
 
+
+		
+		self.resolved_url = resolved_url
+
+	def resolve_entroupload(self):
+		resolved_url = ''
+		self.log('Entroupload - Requesting GET URL: %s', self.url)
+		cookiejar = os.path.join(self.cookie_path,'entroupload.lwp')
+		net.set_cookies(cookiejar)
+		html = net.http_GET(self.url).content
+		try:
+			data = {"method_free":"Free Download"}
+       			r = re.findall(r'type="hidden" name="(.+?)" value="(.+?)">', html)
+			for name, value in r:
+                		data[name] = value
+			self.log('Entroupload - Requesting POST URL: %s DATA: %s', (self.url, data))
+			html = net.http_POST(self.url, data).content
+
+			data = {"method_free":"Free Download"}
+			r = re.findall(r'type="hidden" name="(.+?)" value="(.+?)">', html)
+			for name, value in r:
+                		data[name] = value
+			html = net.http_POST(self.url, data).content
+			sPattern =  '<script type=(?:"|\')text/javascript(?:"|\')>(eval\('
+        		sPattern += 'function\(p,a,c,k,e,d\)(?!.+player_ads.+).+np_vid.+?)'
+        		sPattern += '\s+?</script>'
+        		r = re.search(sPattern, html, re.DOTALL + re.IGNORECASE)
+        		if r:
+            			sJavascript = r.group(1)
+            			sUnpacked = jsunpack.unpack(sJavascript)
+            			sPattern  = '<embed id="np_vid"type="video/divx"src="(.+?)'
+            			sPattern += '"custommode='
+            			r = re.search(sPattern, sUnpacked)
+            			if r:
+                			resolved_url = r.group(1)
+		
+		except Exception, e:
+			print '**** Entroupload Error occured: %s' % e
+		self.resolved_url = resolved_url
 
 	def resolve_megarelease(self):
 		resolved_url = ''
@@ -72,7 +121,6 @@ class localresolver():
 			resolved_url = a['href']
 		except Exception, e:
 			print '**** MegaRelease Error occured: %s' % e
-			raise
 
 			
 		self.resolved_url = resolved_url
@@ -126,7 +174,6 @@ class localresolver():
 	
 		except Exception, e:
 			print '**** 180Upload Error occured: %s' % e
-			#raise
 		self.resolved_url = resolved_url
 
 
@@ -149,6 +196,5 @@ class localresolver():
 			resolved_url = redirect_url + filename
 		except Exception, e:
 			print '**** VidHog Error occured: %s' % e
-			#raise
 		self.resolved_url = resolved_url
 
