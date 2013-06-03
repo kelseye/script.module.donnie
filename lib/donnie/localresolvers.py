@@ -14,7 +14,10 @@ class localresolver():
 		self.resolved_url = ''
 		self.data_path = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.theroyalwe'), '')
 		self.cookie_path = os.path.join(xbmc.translatePath(self.data_path + 'cookies'), '')
-		self.LOGGING_LEVEL = self.getSetting('logging-level')
+		try:
+			self.LOGGING_LEVEL = self.getSetting('logging-level')
+		except:
+			self.LOGGING_LEVEL = 0
 
 	def getSetting(self, setting):
 		return self.REG.getSetting(setting)
