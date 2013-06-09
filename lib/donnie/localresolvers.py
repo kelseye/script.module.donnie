@@ -47,7 +47,7 @@ class localresolver():
 
 
 	def which_host(self):
-		print "validating: %s" % self.url
+		print "Validating: %s" % self.url
 		if re.match('http://(www.)?movreel.com/', self.url): return 'movreel.com'
 		elif re.match('http://(www.)?180upload.com/', self.url): return '180upload.com'
 		elif re.match('http://(www.)?vidhog.com/', self.url): return 'vidhog.com'
