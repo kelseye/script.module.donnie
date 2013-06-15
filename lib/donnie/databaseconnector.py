@@ -112,26 +112,38 @@ class DatabaseClass:
 		return meta
 
 
-	def createBackupFile(self, backupfile, ts, pDialog):
+	def createBackupFile(self, backupfile, ts, pDialog, createUpdate=False):
 		import csv
 		import gzip
+		if createUpdate:
+			backupfile = backupfile + '.update'
 		print "Creating backup: " + backupfile
 		with open(backupfile+'.tmp', 'w') as csvfile:
 			dbwriter = csv.writer(csvfile, dialect='excel',delimiter=' ')
-			
-			tables = [
-				['shows', 'TV Shows'],
-				['showlinks', 'TV Show Links'],
-				['episodes', 'Episodes'],
-				['episodelinks', 'Episode Links'],
-				['showgenres', 'TV Show Genres'],
-				['movies', 'Movies'],
-				['moviegenres', 'Movie Genres'],
-				['subscriptions', 'Subscriptions'],
-				['providers', 'Service Providers'],
-				['update_log', 'Incremental Log'],
-				['update_status', 'Incremental Status'],	
-			]
+			if createUpdate:
+				tables = [
+					['shows', 'TV Shows'],
+					['showlinks', 'TV Show Links'],
+					['showgenres', 'TV Show Genres'],
+					['movies', 'Movies'],
+					['moviegenres', 'Movie Genres'],
+					['update_log', 'Incremental Log'],
+					['update_status', 'Incremental Status'],	
+				]
+			else:
+				tables = [
+					['shows', 'TV Shows'],
+					['showlinks', 'TV Show Links'],
+					['episodes', 'Episodes'],
+					['episodelinks', 'Episode Links'],
+					['showgenres', 'TV Show Genres'],
+					['movies', 'Movies'],
+					['moviegenres', 'Movie Genres'],
+					['subscriptions', 'Subscriptions'],
+					['providers', 'Service Providers'],
+					['update_log', 'Incremental Log'],
+					['update_status', 'Incremental Status'],	
+				]
 			total = len(tables)
 			for table in tables:
 				#index = tables.index(table)
@@ -140,16 +152,19 @@ class DatabaseClass:
 				rowcount = self.DBC.rowcount
 				index = 0
 				while 1:
-					row = self.DBC.fetchone()
-					if row is None: break
-					percent = (index * 100) / rowcount
-					index = index + 1
-					current = tables.index(table)+1
-					pDialog.update(percent, 'Backing up %s' % table[1], '(%s of %s)' % (current, total))
-					dbwriter.writerow(row)
-					if (pDialog.iscanceled()):
-						print 'Canceled backup'
-						return False
+					try:
+						row = self.DBC.fetchone()
+						if row is None: break
+						percent = (index * 100) / rowcount
+						index = index + 1
+						current = tables.index(table)+1
+						pDialog.update(percent, 'Backing up %s' % table[1], '(%s of %s)' % (current, total))
+						dbwriter.writerow(row)
+						if (pDialog.iscanceled()):
+							print 'Canceled backup'
+							return False
+					except:
+						pass
 
 		pDialog.update(0, 'Compressing Backup', '')
 		f_in = open(backupfile+'.tmp', 'r')
@@ -160,7 +175,7 @@ class DatabaseClass:
 		os.remove(backupfile+'.tmp')
 		return True
 
-	def restoreBackupFile(self, backupfile, pDialog):
+	def restoreBackupFile(self, backupfile, pDialog, update=False):
 		import csv
 		import gzip
 		pDialog.update(0, 'Unpacking Backup File', '')
@@ -185,13 +200,14 @@ class DatabaseClass:
 				['update_log', 'Incremental Log'],
 				['update_status', 'Incremental Status'],	
 			]
-		for table in tables:
-			percent = (tables.index(table) * 100) / len(tables)
-			pDialog.update(percent, 'Dropping table:', table[1])
-			SQL = "DELETE FROM rw_%s" % table[0]
-			self.execute(SQL)
-			xbmc.sleep(250)
-			current = 0
+		if not update:
+			for table in tables:
+				percent = (tables.index(table) * 100) / len(tables)
+				pDialog.update(percent, 'Dropping table:', table[1])
+				SQL = "DELETE FROM rw_%s" % table[0]
+				self.execute(SQL)
+				xbmc.sleep(250)
+		current = 0
 		with open(TMP_FILE, 'r') as f:
 			pDialog.update(0, 'Restoring tables', '')
 			reader = csv.reader(f, dialect='excel',delimiter=' ')
@@ -255,7 +271,7 @@ class DatabaseClass:
 					temp = []
 					for index in range(1, len(row)):
 						temp.append(row[index])
-					self.execute("INSERT INTO rw_update_log VALUES(?,?,?,?,?)", temp)
+					self.execute("INSERT INTO rw_update_status VALUES(?,?,?,?,?)", temp)
 				last = row[0]
 
 		self.commit()

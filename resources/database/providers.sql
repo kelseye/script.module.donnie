@@ -72,4 +72,20 @@ INSERT INTO rw_providers(provider, mirror) VALUES("tubeplus", "vidxden.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("tubeplus", "movshare.net");
 INSERT INTO rw_providers(provider, mirror) VALUES("tubeplus", "nowvideo.eu");
 
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "putlocker.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "sockshare.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "movreel.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "180upload.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "novamov.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "divxstage.eu");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "videoweed.es");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "gorillavid.in");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "vidxden.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "movshare.net");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "nowvideo.eu");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "daclips.in");
+INSERT INTO rw_providers(provider, mirror) VALUES("watchseries", "movpod.in");
+
+INSERT INTO rw_providers(provider, mirror) VALUES("simplymovies", "vk.com");
+
 INSERT INTO rw_providers(provider, mirror) VALUES("furk", "furk.net");

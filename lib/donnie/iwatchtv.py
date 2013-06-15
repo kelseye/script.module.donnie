@@ -7,17 +7,17 @@ from t0mm0.common.addon import Addon
 from scrapers import CommonScraper
 net = Net()
 
-class TubePlusServiceSracper(CommonScraper):
+class IWatchTVServiceSracper(CommonScraper):
 	def __init__(self, settingsid, DB=None, REG=None):
 		if DB:
 			self.DB=DB
 		if REG:
 			self.REG=REG
 		self.addon_id = 'script.module.donnie'
-		self.service='tubeplus'
-		self.name = 'tubeplus.me'
-		self.referrer = 'http://www.tubeplus.me/'
-		self.base_url = 'http://www.tubeplus.me/'
+		self.service='iwatchtv'
+		self.name = 'iwatchonline.to'
+		self.referrer = 'http://iwatchonline.to/'
+		self.base_url = 'http://iwatchonline.to/'
 		self.raiseError = False
 		self.ajax_url = self.base_url + '/membersonly/components/com_iceplayer/video.phpAjaxResp.php'
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'

@@ -18,8 +18,8 @@ class OneChannelServiceSracper(CommonScraper):
 		self.service='1channel'
 		self.name = '1channel.ch'
 		self.raiseError = False
-		self.referrer = 'http://www.letmewatchthis.ch/'
-		self.base_url = 'http://www.letmewatchthis.ch/'
+		self.referrer = 'http://primewire.ag/'
+		self.base_url = 'http://primewire.ag/'
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 		self.provides = []
 		self._episodes = []
@@ -154,14 +154,43 @@ class OneChannelServiceSracper(CommonScraper):
 	def _getMovies(self, silent=False):
 		print "Getting recent movies for: " + self.service
 		pDialog = xbmcgui.DialogProgress()
-		uri = '/index.php?sort=release'
+		uri = 'index.php?sort=release'
 		if not silent:
-			pDialog.create('Caching recent movies from ' + self.service)
+			pDialog.create('Caching movies from ' + self.service)
 			pDialog.update(0, self.service, '')
 		pagedata = self.getURL(uri, append_base_url=True)		
 		if pagedata=='':
 			return
 		soup = BeautifulSoup(pagedata)
+		if soup.find('div',  {'class': 'robot_check'}):
+			self.log('They think i am robot, try again later.')
+			return False
+			'''capcode = ''
+			puzzle_img = os.path.join(self.data_path, "puzzle.png")
+			open(puzzle_img, 'wb').write(net.http_GET(self.base_url + "CaptchaSecurityImages.php").content)
+			img = xbmcgui.ControlImage(450,15,400,130, puzzle_img)
+			wdlg = xbmcgui.WindowDialog()
+			wdlg.addControl(img)
+			wdlg.show()
+			xbmc.sleep(2000)
+
+			kb = xbmc.Keyboard('', 'Type the letters in the image', False)
+		   	kb.doModal()
+		   	capcode = kb.getText()
+			if (kb.isConfirmed()):
+		       		userInput = kb.getText()
+		       		if userInput != '':
+		           		capcode = kb.getText()
+		       		elif userInput == '':
+		           		return False
+		   	else:
+		       		return False
+		       
+		   	wdlg.close()
+			data = {'security_code': capcode, 'not_robot': "I'm Human! I Swear!"}
+			pagedata = net.http_POST(self.base_url + uri, data).content
+			soup = BeautifulSoup(pagedata)'''
+
 		div = soup.find('div', {'class': 'pagination'})
 		links = div.findAll('a')
 		a = links[len(links)-1]
@@ -195,6 +224,9 @@ class OneChannelServiceSracper(CommonScraper):
 		if pagedata=='':
 			return
 		soup = BeautifulSoup(pagedata)
+		if soup.find('div',  {'class': 'robot_check'}):
+			self.log('They think i am robot, try again later.')
+			return False
 		divs = soup.findAll("div", {"class" : "index_item index_item_ie"})
 		for div in divs:
 			try:
@@ -301,33 +333,24 @@ class OneChannelServiceSracper(CommonScraper):
 		import urlresolver
 		raw_url = stream.replace(self.service + '://', '')
 		resolved_url = ''
-		'''framedata = self.getURL(raw_url, append_base_url=True)
-		if not framedata:
-			return None
-		soup = BeautifulSoup(framedata)
-		print soup
-		raw_url = soup.find('noframes')
-		if raw_url:
-			raw_url = raw_url.string
-		else:
-			frame = soup.find('iframe')
-			print frame
-			source = frame['src']
-			raw_url = re.search('file=(.+?)&subid=', source).group(0)
-			raw_url = urllib.unquote(raw_url[5:len(raw_url)-7])
-			print raw_url
-		try:
-			resolved_url = urlresolver.HostedMediaFile(url=raw_url).resolve()
-		except:
-			pass'''
+		real_url = ''
 		try:
 			raw_url = self.base_url + raw_url
 			h = httplib2.Http()
-			h.follow_redirects = False
+			h.follow_redirects = True
 			(response, body) = h.request(raw_url)
-			resolved_url = urlresolver.HostedMediaFile(url=response['location']).resolve()
+			resolved_url = urlresolver.HostedMediaFile(url=response['content-location']).resolve()
 		except:
-			print raw_url
+			framedata = self.getURL(raw_url, append_base_url=False)
+			if not framedata:
+				return None
+			soup = BeautifulSoup(framedata)
+			raw_url = soup.find('noframes')
+			if raw_url:
+				raw_url = raw_url.string
+				resolved_url = urlresolver.HostedMediaFile(url=raw_url).resolve()
+		
+		if not resolved_url:
 			framedata = self.getURL(raw_url, append_base_url=False)
 			if not framedata:
 				return None
@@ -354,11 +377,6 @@ class OneChannelServiceSracper(CommonScraper):
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = re.search('- (.+?) \(', link).group(1)	
-		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
-			"SELECT ?, ?, priority " \
-			"FROM rw_providers " \
-			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])'''
 		
 		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
 		"SELECT ?, ?, priority, ? " \

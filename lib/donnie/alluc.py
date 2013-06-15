@@ -230,6 +230,7 @@ class AllucServiceSracper(CommonScraper):
 				'Nowvideo'	: 'nowvideo.com',
 				'Moveshare'	: 'moveshare.net',
 				'Shockshare'	: 'shockshare.com',
+				'Putlocker'	: 'putlocker.com',
 		}
 
 		try: 
@@ -246,13 +247,13 @@ class AllucServiceSracper(CommonScraper):
 		resolved_url = ''
 		raw_url = self.base_url + '/' + uri
 		h = httplib2.Http()
-		h.follow_redirects = False
+		h.follow_redirects = True
 		(response, body) = h.request(raw_url)
 		try:
-			resolved_url = urlresolver.HostedMediaFile(url=response['location']).resolve()
+			resolved_url = urlresolver.HostedMediaFile(url=response['content-location']).resolve()
 		except:
 			self.log('Unable to resolve using urlresolver')
-			resolved_url = self.resolveLink(raw_url)
+			resolved_url = self.resolveLink(response['content-location'])
 			if not resolved_url:
 				print "Unable to resolve url, sorry!"
 		return resolved_url
@@ -282,17 +283,6 @@ class AllucServiceSracper(CommonScraper):
 			imdb = data['search'][0]['imdbID']
 		return self.padIMDB(imdb)
 
-	'''def _getServicePriority(self, link):
-		self.log(link)
-		host = re.search(': (.+?) -', link).group(1)
-		row = self.DB.query("SELECT priority FROM rw_providers WHERE mirror=? and provider=?", [host, self.service])
-		if not self.PREFER_HD:
-			priority = row[0]
-			if re.search('SD\[\/COLOR\]$', link):
-				priority = priority - 0.5			
-		else:
-			priority = row[0]
-		return priority'''
 
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
@@ -303,27 +293,6 @@ class AllucServiceSracper(CommonScraper):
 			"WHERE mirror=? and provider=?"
 		self.DB.execute(SQL, [link, stream, self.REG.getSetting('machine-id'), host, self.service])
 
-
-	
-
-	
-	def resolveLink(self, link):
-		resolved_url = None
-		self.log("Attempting local resolver", level=0)
-		'''link_type = self.whichProviderType(link)
-		if link_type == 'BU':
-			resolved_url = self.resolve_billionuploads(link)
-			self.log("BillionUploads returned: %s", resolved_url)
-		elif link_type == 'MR':
-			resolved_url = self.resolve_movreel(link)
-			self.log("Movreel returned: %s", resolved_url)
-		elif link_type == 'VH':
-			resolved_url = self.resolve_vidhog(link)
-			self.log("VidHog returned: %s", resolved_url)
-		elif link_type == '180':
-			resolved_url = self.resolve_180upload(link)
-			self.log("VidHog returned: %s", resolved_url)'''
-		return resolved_url
 
 	
 

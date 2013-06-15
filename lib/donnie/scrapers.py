@@ -58,14 +58,30 @@ class CommonScraper:
 		if self.getBoolSetting('enable-alluc'):
 			from alluc import AllucServiceSracper
 			self.putScraper('alluc', AllucServiceSracper(self.settingsid, self.DB, self.REG))
-		if self.getBoolSetting('enable-tubeplus'):
 
+		if self.getBoolSetting('enable-watchseries'):
+			from watchseries import WatchSeriesServiceSracper
+			self.putScraper('watchseries', WatchSeriesServiceSracper(self.settingsid, self.DB, self.REG))
+
+		'''if self.getBoolSetting('enable-iwatchtv'):
+			from iwatchtv import TVReleaseServiceSracper
+			self.putScraper('iwatchtv', IWatchTVSracper(self.settingsid, self.DB, self.REG))'''
+
+		if self.getBoolSetting('enable-simplymovies'):
+			from simplymovies import SimplyMoviesServiceSracper
+			self.putScraper('simplymovies', SimplyMoviesServiceSracper(self.settingsid, self.DB, self.REG))
+
+		if self.getBoolSetting('enable-tubeplus'):
 			from tubeplus import TubePlusServiceSracper
 			self.putScraper('tubeplus', TubePlusServiceSracper(self.settingsid, self.DB, self.REG))
-		if self.getBoolSetting('enable-furk'):
 
+		if self.getBoolSetting('enable-furk'):
 			from furk import FurkServiceSracper
 			self.putScraper('furk', FurkServiceSracper(self.settingsid, self.DB, self.REG))
+
+		'''if self.getBoolSetting('enable-tvrelease'):
+			from tvrelease import TVReleaseServiceSracper
+			self.putScraper('tvrelease', TVReleaseServiceSracper(self.settingsid, self.DB, self.REG))'''
 
 		self.settings_addon = self.addon
 
@@ -311,6 +327,7 @@ class CommonScraper:
 		else:
 			url = re.sub('^http://(.+?)/', self.OVERRIDE_URL, url)
 
+		self.log('url: ' + repr(url))
 		self.log('params: ' + repr(params))
 		self.log('referrer: ' + repr(self.referrer))
 		self.log('cookie: ' + repr(cookie))
@@ -384,6 +401,8 @@ class CommonScraper:
 			if(re.search('\\(\\d\\d\\d\\d\\)$', row[0])):
 				show = row[0]
 				show = show[0:len(show)-7]
+			else:
+				show = row[0]
 			try:
 				self.getScraperByName(row[2])._getEpisodes(showid, show, row[1], pDialog, percent, True, createFiles=False)
 			except:pass	
