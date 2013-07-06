@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS `rw_host_log` ( `hostid` int(11) NOT NULL AUTO_INCREM
 
 CREATE TABLE IF NOT EXISTS `rw_status` (  `statusid` int(11) NOT NULL,   `updating` tinyint(4) NOT NULL DEFAULT '0',   `last_subscription_update` timestamp NULL DEFAULT NULL,  `last_tvshow_update` timestamp NULL DEFAULT NULL,  `last_movie_update` timestamp NULL DEFAULT NULL,  `job` varchar(75) DEFAULT NULL,  PRIMARY KEY (`statusid`,`updating`) ) ENGINE=InnoDB;
 
-CREATE TABLE `rw_stream_list` ( `streamid` int(11) NOT NULL AUTO_INCREMENT, `stream` varchar(75) DEFAULT NULL, `url` varchar(125) DEFAULT NULL, `priority` decimal(3,1) DEFAULT NULL, PRIMARY KEY (`streamid`)) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS `rw_stream_list` ( `streamid` int(11) NOT NULL AUTO_INCREMENT, `stream` varchar(75) DEFAULT NULL, `url` varchar(125) DEFAULT NULL, `priority` decimal(3,1) DEFAULT NULL, PRIMARY KEY (`streamid`)) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `rw_temp_episodes` ( `tempid` int(11) NOT NULL AUTO_INCREMENT,  `showname` varchar(255) DEFAULT NULL,  `title` varchar(255) DEFAULT NULL,  `season` int(11) DEFAULT NULL,  `episode` int(11) DEFAULT NULL,  `provider` varchar(45) DEFAULT NULL,  `url` varchar(255) DEFAULT NULL,  `machineid` varchar(125) DEFAULT NULL,  PRIMARY KEY (`tempid`) ) ENGINE=InnoDB;
 
 CREATE  OR REPLACE VIEW `rw_cache_status` AS select type, provider, (((now() - ts)/86400) > 7) AS stale from rw_update_log;

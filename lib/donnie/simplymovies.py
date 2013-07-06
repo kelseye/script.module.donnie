@@ -118,41 +118,25 @@ class SimplyMoviesServiceSracper(CommonScraper):
 		season = block.group(1)
 		pagedata = block.group(2)
 		soup = BeautifulSoup(pagedata)
-		print season
-		print soup
-		'''
-		seasons = soup.findAll(text=re.compile("Season \d{1,3}"))
-		links = soup.findAll(href=re.compile("tv_episode.php"))
-		print links
-		for s in seasons:
-			print s
-			a = s.next_sibling
-			print a
-			#while True:
-			#	a = s.next_sibling
-			#	print a
-			#	break'''
-			
-		'''links = soup.findAll('a', {'class' : 'episode'})
-		p1 = re.compile('style="color: gray;"')
-		p2 = re.compile('/Season(.+?)/Episode(.+?)\.html')
-		p3 = re.compile(' - (.+?) \(')
-		for link in links:		
-			if not p1.search(str(link)):
-				href = link['href']
-				temp = p2.search(href)
-				season =  temp.group(1)
-				episode = temp.group(2).zfill(2)
-				try:
-					name = link.find('span')
-					name = p3.search(name.string).group(1)
-				except:
-					name = "Episode %s" % episode
+	
+		para = soup.findAll('p')
+		for p in soup:
+			try:
+				a = p.find('a')
+				href=a['href']
+				title = a.string
+				episode = re.search('^Episode (\d{1,3})', title).group(1)
+				title = re.sub('^Episode (\d{1,3}): ', '', title)
 				if not silent:
-					display = "%sx%s %s" % (season, episode, name)
-					pDialog.update(percent, show, display)
-				self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
-		self.DB.commit()'''	
+					display = "%sx%s %s" % (season, episode, title)
+					pDialog.update(0, show, display)
+				self.addEpisodeToDB(showid, show, title, season, episode, href, createFiles=createFiles)
+			except:
+				pass
+			try:
+				season = re.search('<h3>Season (\d{1,3})</h3>', str(p)).group(1)
+			except: pass
+		self.DB.commit()	
 		return True
 
 

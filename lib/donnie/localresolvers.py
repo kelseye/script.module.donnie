@@ -104,7 +104,17 @@ class localresolver():
 		resolved_url = ''
 		self.log('MegaRelease - Requesting GET URL: %s', self.url)
 		html = net.http_GET(self.url).content
+
+		
 		try:
+			frame = re.search("<div style='width:80px;height:26px;font:bold 13px Arial;background:#ccc;text-align:left;direction:ltr;'>(.+?)</div>", html).group(1)
+			import HTMLParser
+			h = HTMLParser.HTMLParser()
+			regex = ur":(\d+)px;padding-top:\d{1,2}px;'>(.+?);"
+			codes = re.findall(regex, frame)
+			code = ''
+			for e in sorted(codes,  key=lambda s: int(s[0])):
+				code = code + h.unescape(str(e[1])+';')
 			op = 'download2'
 			btn_download = 'Continue'
 	
@@ -113,7 +123,7 @@ class localresolver():
 			method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
 			method_premium = re.search('<input type="hidden" name="method_premium" value="(.*?)">', html).group(1)
 			down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
-			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'method_premium': method_premium, 'down_direct': down_direct, 'btn_download': btn_download}
+			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'method_premium': method_premium, 'down_direct': down_direct, 'btn_download': btn_download, 'code': code}
 
 			self.log('MegaRelease - Requesting POST URL: %s DATA: %s', (self.url, data))
 			html = net.http_POST(self.url, data).content

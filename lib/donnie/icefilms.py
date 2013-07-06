@@ -106,9 +106,12 @@ class IcefilmsServiceSracper(CommonScraper):
 		soup = BeautifulSoup(latrel[0])
 		links = soup.findAll('a')
 		for link in links:
-			text = self.cleanName(link.string)
-			episode = [self.service, text, link['href']]
-			episodes.append(episode)
+			try:
+				text = self.cleanName(link.string)
+				episode = [self.service, text, link['href']]
+				episodes.append(episode)
+			except: pass
+			self.DB.commit()
 		return episodes
 
 	def _getEpisodes(self, showid, show, url, pDialog, percent, silent, createFiles=True):

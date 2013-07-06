@@ -379,16 +379,24 @@ class CommonScraper:
 			self.log("Get scrapper: %s", self.activeScrapers[index])
 			self.getScraperByIndex(index)._getMovies(silent)
 
-	def getNewEpisodes(self, silent=False):
-		self.log("Getting New Release Episodes")
+	def getNewEpisodes(self, silent=False, provider=None):
 		episodes = []
+		if provider:
+			self.log("Getting New Releases for %s", provider)
+			try:
+				episodes = self.getScraperByName(provider)._getNewEpisodes(silent)
+			except: pass
+		return episodes
+		self.log("Getting New Release Episodes")
+
 		for index in range(0, len(self.activeScrapers)):
 			self.log("Get scrapper: %s", self.activeScrapers[index])
 			try:
-				episodes = episodes + self.getScraperByIndex(index)._getNewEpisodes(silent)
+				temp = self.getScraperByIndex(index)._getNewEpisodes(silent)
+				episodes = episodes + temp
 			except: pass
 		return episodes
-		return sorted(episodes,  key=lambda s: s[1])
+		#return sorted(episodes,  key=lambda s: s[1])
 
 	def getEpisodes(self, showid):
 		self.log("Getting Episodes: %s", showid)
@@ -422,16 +430,23 @@ class CommonScraper:
 			self.log("Get scrapper: %s", self.activeScrapers[index])
 			self.getScraperByIndex(index)._updateSubscriptionById(showid, show, pDialog, percent)
 
-	def getStreams(self, episodeid=None, movieid=None):
+	def getStreams(self, episodeid=None, movieid=None, tempid=None):
 		self.log("Getting available streams by id: %s, %s" % (episodeid, movieid))
 		#pDialog = xbmcgui.DialogProgress()
 		#pDialog.create('Getting available mirrors')
+		if tempid:
+			episodeids = self.DB.query("SELECT url as episodeid FROM rw_temp_episodes WHERE provider=? AND machineid=?", [tempid, self.REG.getSetting('machine-id')], force_double_array=True)
+
 		total = len(self.activeScrapers)
 		for index in range(0, total):
 			percent = ((index + 1) * 100) / total
 			self.log("Get scrapper: %s", self.activeScrapers[index])
 			#pDialog.update(percent, self.activeScrapers[index], '')
-			self.getScraperByIndex(index)._getStreams(episodeid=episodeid, movieid=movieid)
+			if tempid:
+				for episodeid in episodeids:
+					self.getScraperByIndex(index)._getStreams(episodeid=episodeid[0])
+			else:
+				self.getScraperByIndex(index)._getStreams(episodeid=episodeid, movieid=movieid)
 			'''self.log(streams)
 			if streams:	
 				for stream in streams:

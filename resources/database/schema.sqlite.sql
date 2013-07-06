@@ -34,4 +34,6 @@ CREATE TABLE IF NOT EXISTS "rw_status" (  "statusid" INTEGER PRIMARY KEY,   upda
 
 CREATE TABLE IF NOT EXISTS rw_stream_list ( "streamid" INTEGER  PRIMARY KEY AUTOINCREMENT,  "stream" TEXT,  "url" TEXT,  "priority" REAL, "machineid" TEXT );
 
+CREATE TABLE IF NOT EXISTS rw_temp_episodes ( "tempid" INTEGER  PRIMARY KEY AUTOINCREMENT,  "showname" TEXT,  "title" TEXT,  "season" INTEGER,  "episode" INTEGER,  "provider" TEXT,  "url" TEXT,  "machineid" TEXT );
+
 CREATE VIEW IF NOT EXISTS rw_cache_status AS SELECT type, provider, (((julianday('now') - 2440587.5) - (julianday(ts) - 2440587.5) ) > 7) AS stale FROM rw_update_log;
