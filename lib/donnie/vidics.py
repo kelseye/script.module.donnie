@@ -235,12 +235,15 @@ class VidicsServiceSracper(CommonScraper):
 			return
 		soup = BeautifulSoup(pagedata)
 		spans = soup.findAll('div', {'class' : 'movie_link'})
-		for span in spans:		
+		for span in spans:
+			print span		
 			a = span.find('a', { "rel" : 'nofollow' })
 			if a:
-				host = self.whichHost(a.string)
+				host = self.whichHost(str(a.string))
+				print host
 				#host = host.find('script').string
 				raw_url = a['href']
+				print raw_url
 				if self.checkProviders(host):			
 					#streams.append(['Vidics - ' + host, self.service + '://' + raw_url])
 					self.getStreamByPriority('Vidics - ' + host, self.service + '://' + raw_url)
@@ -286,7 +289,15 @@ class VidicsServiceSracper(CommonScraper):
 				'Divxstage'	: 'divxstage.eu',
 				'Sharesix'	: 'sharesix.com',
 				'Filenuke'	: 'filenuke.com',
+				'Ilenuke'	: 'filenuke.com',
 				'Uploadc'	: 'uploadc.com',
+				'Putlocker'	: 'putlocker.com',
+				'Sockshare'	: 'sockshare.com',
+				'80upload'	: '180upload.com',
+				'Illionuplo..'	: 'billionuploads.com',
+				'Ovreel'	: 'movreel.com',
+				'Emuploads'	: 'lemuploads.com',
+				
 		}
 
 		try:

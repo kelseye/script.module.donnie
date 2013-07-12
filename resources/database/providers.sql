@@ -37,6 +37,12 @@ INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "entroupload.com")
 
 INSERT INTO rw_providers(provider, mirror) VALUES("wareztuga", "putlocker.com");
 
+INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "putlocker.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "sockshare.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "lemuploads.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "megarelease.org");
+INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "movreel.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "billionuploads.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "movepod.in");
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "gorillavid.in");
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "daclips.com");
@@ -48,8 +54,7 @@ INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "divxstage.eu");
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "sharesix.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "filenuke.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "uploadc.com");
-INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "sockshare.com");
-INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "putlocker.com");
+
 
 INSERT INTO rw_providers(provider, mirror) VALUES("alluc", "putlocker.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("alluc", "sockshare.com");
