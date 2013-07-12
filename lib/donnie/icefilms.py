@@ -231,7 +231,6 @@ class IcefilmsServiceSracper(CommonScraper):
 		if mirrorpage=='':
 			return
 		soup = BeautifulSoup(mirrorpage)
-		#print mirrorpage
 		try:
 			sec = re.search("f\.lastChild\.value=\"(.+?)\",a", mirrorpage).group(1)
 			t = re.search('"&t=([^"]+)",', mirrorpage).group(1)

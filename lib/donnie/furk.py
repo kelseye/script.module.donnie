@@ -109,7 +109,7 @@ class FurkServiceSracper(CommonScraper):
 			if re.search('\\(\\d\\d\\d\\d\\)$', row[0]):
 				name = name[0:len(name)-7]
 			season = row[1].zfill(2)
-			episode = row[2]
+			episode = row[2].zfill(2)
 			query = str("%s S%sE%s" % (name, season, episode))
 		elif movieid:
 			row = self.DB.query("SELECT movie, year FROM rw_movies WHERE imdb=? LIMIT 1", [movieid])

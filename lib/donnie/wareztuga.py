@@ -184,7 +184,6 @@ class WarezTugaServiceSracper(CommonScraper):
 		if pagedata=='':
 			return False
 		soup = BeautifulSoup(pagedata)
-		print soup
 		seasons = soup.findAll('div', {'class' : 'season'})
 		lastseason = seasons[len(seasons)-1].find('a').string
 		episodes = soup.findAll('div', {'class' : 'episode-number'})

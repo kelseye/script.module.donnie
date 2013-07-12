@@ -413,7 +413,8 @@ class CommonScraper:
 				show = row[0]
 			try:
 				self.getScraperByName(row[2])._getEpisodes(showid, show, row[1], pDialog, percent, True, createFiles=False)
-			except:pass	
+			except:pass
+
 
 	def updateSubscriptions(self, silent=False):
 		self.log("Updating Subscriptions")
@@ -432,8 +433,6 @@ class CommonScraper:
 
 	def getStreams(self, episodeid=None, movieid=None, tempid=None):
 		self.log("Getting available streams by id: %s, %s" % (episodeid, movieid))
-		#pDialog = xbmcgui.DialogProgress()
-		#pDialog.create('Getting available mirrors')
 		if tempid:
 			episodeids = self.DB.query("SELECT url as episodeid FROM rw_temp_episodes WHERE provider=? AND machineid=?", [tempid, self.REG.getSetting('machine-id')], force_double_array=True)
 
@@ -441,7 +440,6 @@ class CommonScraper:
 		for index in range(0, total):
 			percent = ((index + 1) * 100) / total
 			self.log("Get scrapper: %s", self.activeScrapers[index])
-			#pDialog.update(percent, self.activeScrapers[index], '')
 			if tempid:
 				for episodeid in episodeids:
 					self.getScraperByIndex(index)._getStreams(episodeid=episodeid[0])
