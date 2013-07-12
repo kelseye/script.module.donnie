@@ -79,23 +79,26 @@ class WatchSeriesServiceSracper(CommonScraper):
 
 	def _getNewEpisodes(self, silent=False):
 		self.log("Getting new episodes for %s", self.service)
-		'''episodes = []
+		episodes = []
 
-		pagedata = self.getURL('/browse/tv-shows/Last/ALL/', append_base_url=True)
+		pagedata = self.getURL('/latest', append_base_url=True)
 		if pagedata=='':
 			return False
 		soup = BeautifulSoup(pagedata)
-		shows = soup.findAll("a", {"class": "plot"})
+		ul = soup.find("ul", {"class": "listings"})
+		shows = ul.findAll("a")
+	
 		for show in shows:
+			print show			
 			try: 
-				name = show.find('b').string
-				title = show.find('b', {"class": "sbtitle"}).string
-				title = self.cleanName("%s %s" % (name, title))
+				print show
+				title = show.string
+				title = self.cleanName(title)
 				episode = [self.service, title, show['href']]
 				episodes.append(episode)
 			except:
 				pass
-		return episodes'''
+		return episodes
 
 	def _getEpisodes(self, showid, show, url, pDialog, percent, silent, createFiles=True):
 		self.log("Getting episodes for %s", show)

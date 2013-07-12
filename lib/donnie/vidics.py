@@ -72,28 +72,21 @@ class VidicsServiceSracper(CommonScraper):
 		if pagedata=='':
 			return		
 		soup = BeautifulSoup(pagedata)
-		shows = soup.findAll('div', {'class' : 'tvshow_img'})
+		shows = soup.findAll('a', {'itemprop' : 'url', 'class': 'blue'})
 		for show in shows:
+			genres = []
 			try:
-				links = show.findAll('a')
-				a = links[1]
-				name = a['title']
-				name = name[6:len(name)-13]
-				href = a['href']
-				year = re.search('-\d{4}\.html', href).group(0)
-				year = year[1:len(year)-5]
+				name = show.find('span', {'itemprop' : 'name'}).string
+				year = show.find('span', {'itemprop' : 'copyrightYear'}).string
+				href = show['href']
 				name = "%s (%s)" % (name, year)
 				if not silent:
 					pDialog.update(percent, self.service + ' page: ' + str(page), name)
 				character = self.getInitialChr(name)
-
-				genre_links = show.parent.findAll('a', {'class' : 'movies_genre'})
-				genres = []
-				for genre in genre_links:
-					genres.append(str(genre.string))
 				self.addShowToDB(name, href, character, year, genres)
-			except:
-				self.log('**** Malformed entry')
+			except Exception, e:
+				self.log('**** Malformed entry:%s ' % e)
+			
 
 		if page == 1:
 			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'tvshows'])
@@ -120,29 +113,32 @@ class VidicsServiceSracper(CommonScraper):
 
 	def _getEpisodes(self, showid, show, url, pDialog, percent, silent, createFiles=True):
 		self.log("Getting episodes for %s", show)
-		pagedata = self.getURL(url, append_base_url=False)
+		pagedata = self.getURL(url, append_base_url=True)
 		if pagedata=='':
 			return False
 		soup = BeautifulSoup(pagedata)
 		links = soup.findAll('a', {'class' : 'episode'})
 		p1 = re.compile('style="color: gray;"')
-		p2 = re.compile('/Season(.+?)/Episode(.+?)\.html')
+		p2 = re.compile('-Season-(.+?)-Episode-(.+?)$')
 		p3 = re.compile(' - (.+?) \(')
-		for link in links:		
-			if not p1.search(str(link)):
-				href = link['href']
-				temp = p2.search(href)
-				season =  temp.group(1)
-				episode = temp.group(2).zfill(2)
-				try:
-					name = link.find('span')
-					name = p3.search(name.string).group(1)
-				except:
-					name = "Episode %s" % episode
-				if not silent:
-					display = "%sx%s %s" % (season, episode, name)
-					pDialog.update(percent, show, display)
-				self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
+		for link in links:
+			try:		
+				if not p1.search(str(link)):
+					href = link['href']
+					temp = p2.search(href)
+					season = temp.group(1)
+					episode = temp.group(2).zfill(2)
+					try:
+						name = link.find('span')
+						name = p3.search(name.string).group(1)
+					except:
+						name = "Episode %s" % episode
+					if not silent:
+						display = "%sx%s %s" % (season, episode, name)
+						pDialog.update(percent, show, display)
+					self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
+			except Exception, e:
+				self.log('**** Malformed entry:%s ' % e)
 		self.DB.commit()	
 		return True
 
@@ -191,28 +187,21 @@ class VidicsServiceSracper(CommonScraper):
 		if pagedata=='':
 			return		
 		soup = BeautifulSoup(pagedata)
-		movies = soup.findAll('div', {'class' : 'tvshow_img'})
+		movies = soup.findAll('a', {'itemprop' : 'url', 'class': 'blue'})
 		for movie in movies:
+			genres = []
 			try:
-				links = movie.findAll('a')
-				a = links[1]
-				name = a['title']
-				name = name[6:len(name)-13]
-				href = a['href']
-				year = re.search('-\d{4}\.html', href).group(0)
-				year = year[1:len(year)-5]
+				href = movie['href']
+				year = movie.find('span', {'itemprop' : 'copyrightYear'}).string
+				name = movie.find('span', {'itemprop' : 'name'}).string
 				name = "%s (%s)" % (name, year)
-				genre_links = movie.parent.findAll('a', {'class' : 'movies_genre'})
-				genres = []
-				for genre in genre_links:
-					genres.append(str(genre.string))
-				#print genres
+				character = self.getInitialChr(name)
+	
 				if not silent:
 					pDialog.update(percent, self.service + ' page: ' + str(page), name)
-				character = self.getInitialChr(name)
-				self.addMovieToDB(name, href, self.service + '://' + href, character, year, genres)
-			except:
-				pass
+				self.addMovieToDB(name, href, self.service + '://' + href, character, year, genres)			
+			except Exception, e:
+				self.log('**** Malformed entry:%s ' % e)
 
 		if page == 1:
 			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'movies'])
