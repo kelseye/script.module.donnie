@@ -21,6 +21,7 @@ class OneChannelServiceSracper(CommonScraper):
 		self.referrer = 'http://primewire.ag/'
 		self.base_url = 'http://primewire.ag/'
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
+		self._agent_index = 0
 		self.provides = []
 		self._episodes = []
 		self.AZ = ['1', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z']
@@ -151,6 +152,36 @@ class OneChannelServiceSracper(CommonScraper):
 		self.DB.commit()
 		return True
 
+	def _swap_agents(self):
+		agents = [
+			'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.22 (KHTML, like Gecko) Ubuntu Chromium/25.0.1364.160 Chrome/25.0.1364.160 Safari/537.22',
+
+			'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_3 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B329 Safari/8536.25',
+
+			'Mozilla/5.0 (Linux; U; Android 4.0.4; vi-vn; GT-P7500 Build/IMM76D) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30',
+	
+			'Mozilla/5.0 (Windows NT 5.1; rv:21.0) Gecko/20100101 Firefox/21.0',
+			
+			'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Cente',
+
+			'Mozilla/5.0 (Windows NT 5.1; rv:5.0.1) Gecko/20100101 Firefox/5.0.1',
+			
+			'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; FunWebProducts; .NET CLR 1.1.4322; PeoplePal 6.2)',
+			
+			'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1',
+
+			'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.19; aggregator:Spinn3r (Spinn3r 3.1); http://spinn3r.com/robot) Gecko/2010040121 Firefox/3.0.19',
+
+			'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; MRA 5.8 (build 4157); .NET CLR 2.0.50727; AskTbPTV/5.11.3.15590)'
+		]
+		if (self._agent_index + 1 == len(agents)):
+			self._agent_index = 0
+		else:
+			self._agent_index = self._agent_index + 1
+		self.user_agent = agents[self._agent_index]
+		print self.user_agent		
+	
+
 	def _getMovies(self, silent=False):
 		print "Getting recent movies for: " + self.service
 		pDialog = xbmcgui.DialogProgress()
@@ -163,8 +194,15 @@ class OneChannelServiceSracper(CommonScraper):
 			return
 		soup = BeautifulSoup(pagedata)
 		if soup.find('div',  {'class': 'robot_check'}):
-			self.log('They think i am robot, try again later.')
-			return False
+			self.log('They think i am robot, I\'ll swap agents.')
+			self._swap_agents()
+			pagedata = self.getURL(uri, append_base_url=True)		
+			if pagedata=='':
+				return
+			soup = BeautifulSoup(pagedata)
+			if soup.find('div',  {'class': 'robot_check'}):
+				self.log('They still think i am robot, try again later.')
+				return False
 			'''capcode = ''
 			puzzle_img = os.path.join(self.data_path, "puzzle.png")
 			open(puzzle_img, 'wb').write(net.http_GET(self.base_url + "CaptchaSecurityImages.php").content)
@@ -225,8 +263,14 @@ class OneChannelServiceSracper(CommonScraper):
 			return
 		soup = BeautifulSoup(pagedata)
 		if soup.find('div',  {'class': 'robot_check'}):
-			self.log('They think i am robot, try again later.')
-			return False
+			self.log('They think i am robot, I\'ll swap agents.')
+			self._swap_agents()
+			if pagedata=='':
+				return
+			soup = BeautifulSoup(pagedata)
+			if soup.find('div',  {'class': 'robot_check'}):
+				self.log('They still think i am robot, try again later.')
+				return False
 		divs = soup.findAll("div", {"class" : "index_item index_item_ie"})
 		for div in divs:
 			try:

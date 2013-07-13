@@ -163,7 +163,8 @@ class DatabaseClass:
 						if (pDialog.iscanceled()):
 							print 'Canceled backup'
 							return False
-					except:
+					except Exception, e:
+						print '******** Backup Error: %s' % e
 						pass
 
 		pDialog.update(0, 'Compressing Backup', '')
