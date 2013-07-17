@@ -88,8 +88,7 @@ class WatchSeriesServiceSracper(CommonScraper):
 		ul = soup.find("ul", {"class": "listings"})
 		shows = ul.findAll("a")
 	
-		for show in shows:
-			print show			
+		for show in shows:			
 			try: 
 				print show
 				title = show.string

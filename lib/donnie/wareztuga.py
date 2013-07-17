@@ -249,8 +249,8 @@ class WarezTugaServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, self.service + ' page ' +str(page), title)
 				self.addMovieToDB(title, href, self.service + '://' + href, character, year)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 			self.DB.commit()
 		return True
 
@@ -321,7 +321,8 @@ class WarezTugaServiceSracper(CommonScraper):
 			#streams.append(['WarezTuga - ' + 'putlocker.com', self.service + '://' + raw_url])
 			if self.ENABLE_MIRROR_CACHING:
 				self.cacheStreamLink(cache_url, 'WarezTuga - ' + 'putlocker.com', self.service + '://' + raw_url)
-		except: pass
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		#return streams
 
@@ -332,7 +333,8 @@ class WarezTugaServiceSracper(CommonScraper):
 		try:
 			raw_url = re.search('http://www.putlocker.com/file/([0-9]|[A-Z])+', raw_url).group(0)
 			resolved_url = urlresolver.HostedMediaFile(url=raw_url).resolve()
-		except:
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 			self.log("Unable to resolve url, sorry!", level=0)
 			return None
 		#self.logHost(self.service, raw_url)

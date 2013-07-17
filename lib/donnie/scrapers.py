@@ -120,7 +120,8 @@ class CommonScraper:
 				return soup
 			else:
 				return content
-		except:
+		except IOError, e:
+			self.log("******** Donnie Error: %s, %s" % (self.service, e))
 			return ''
 
 	def writefile(self, path, content):
@@ -129,7 +130,8 @@ class CommonScraper:
 			file.write(content)
 			file.close()
 			return True
-		except:
+		except IOError, e:
+			self.log("******** Donnie Error: %s, %s" % (self.service, e))
 			return False
 
 	def getSetting(self, setting):
@@ -198,7 +200,8 @@ class CommonScraper:
 					url = options[index]
 					return url
 			return ''
-		except:
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 			self.log('No prefered host found')
 			return False
 
@@ -261,29 +264,6 @@ class CommonScraper:
 	def cleanName(self, s, remove_year=False):
 		if remove_year and re.search('\\(\\d\\d\\d\\d\\)$', s):
 			s = s[0:len(s)-7]
-		'''s = s.replace(' (Eng subs)', '')
-		s = s.replace(' (eng subs)', '')
-		s = s.replace(' (English subs)', '')
-		s = s.replace(' (english subs)', '')
-		s = s.replace(' (Eng Subs)', '')
-		s = s.replace(' (English Subs)', '')
-		s = s.replace('&#x26;', '&')
-		s = s.replace('&#x27;', '\'')
-		s = s.replace('&#x92;', '')
-		s = s.replace('&#xC6;', 'AE')
-		s = s.replace('&#xC7;', 'C')MIRROR_CACHE_LIMIT
-		s = s.replace('&#xF4;', 'o')
-		s = s.replace('&#xF3;', 'o')
-		s = s.replace('&#xE9;', 'e')
-		s = s.replace('&#xEB;', 'e')
-		s = s.replace('&#xED;', 'i')
-		s = s.replace('&#xEE;', 'i')
-		s = s.replace('&#xA2;', 'c')
-		s = s.replace('&#xE2;', 'a')
-		s = s.replace('&#xEF;', 'i')
-		s = s.replace('&#xE1;', 'a')
-		s = s.replace('&#xE8;', 'e')
-		s = s.replace('%2E', '.')'''
 		s = htmlcleaner.clean(s,strip=True)
 		s = s.strip()
 		return(s)
@@ -385,7 +365,8 @@ class CommonScraper:
 			self.log("Getting New Releases for %s", provider)
 			try:
 				episodes = self.getScraperByName(provider)._getNewEpisodes(silent)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		return episodes
 		self.log("Getting New Release Episodes")
 
@@ -394,13 +375,19 @@ class CommonScraper:
 			try:
 				temp = self.getScraperByIndex(index)._getNewEpisodes(silent)
 				episodes = episodes + temp
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		return episodes
 		#return sorted(episodes,  key=lambda s: s[1])
 
-	def getEpisodes(self, showid):
+	def getEpisodes(self, showid, check_cache=False):
 		self.log("Getting Episodes: %s", showid)
 		episodes = []
+		if check_cache:
+			try:
+				test = self.DB.query("SELECT stale FROM rw_show_status WHERE showid=?", [showid])
+				if str(test[0])=='0': return True
+			except: pass
 		pDialog = xbmcgui.DialogProgress()
 		rows = self.DB.query("SELECT rw_shows.showname, rw_showlinks.url, rw_showlinks.service FROM rw_shows JOIN rw_showlinks ON rw_shows.showid=rw_showlinks.showid WHERE rw_shows.showid=?", [showid],  force_double_array=True)
 		#pDialog.create('Getting Episodes: %s' % rows[0][0])
@@ -413,7 +400,10 @@ class CommonScraper:
 				show = row[0]
 			try:
 				self.getScraperByName(row[2])._getEpisodes(showid, show, row[1], pDialog, percent, True, createFiles=False)
-			except:pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
+		self.DB.execute("REPLACE INTO rw_episode_cache(showid) VALUES(?)", [showid])
+		self.DB.commit()
 
 
 	def updateSubscriptions(self, silent=False):
@@ -457,7 +447,8 @@ class CommonScraper:
 		resolver = url.split("://")
 		try:
 			self.getScraperByName(resolver[0])._getStreams(directurl=resolver[1])
-		except:
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 			self.log('Unable to locate any streams', level=0)
 		self.log("Getting available streams by from: %s" % url)
 		#return streams
@@ -485,7 +476,8 @@ class CommonScraper:
 						self.DB.execute("UPDATE rw_movies SET imdb=? WHERE movieid=?", [imdb, movieid])
 						self.DB.commit()
 					else: return False
-				except:
+				except Exception, e:
+					self.log("********Donnie Error: %s, %s" % (self.service, e))
 					return False
 		if showid:
 			rows = self.DB.query("SELECT imdb, service, url, showname, year FROM rw_shows JOIN rw_showlinks ON rw_shows.showid=rw_showlinks.showid WHERE rw_shows.showid=?", [showid], force_double_array = True)
@@ -497,7 +489,10 @@ class CommonScraper:
 							self.DB.execute("UPDATE rw_shows SET imdb=? WHERE showid=?", [imdb, showid])
 							self.DB.commit()
 							return imdb
-					except: pass
+					except Exception, e:
+						self.log("********Donnie Error: %s, %s" % (self.service, e))
+				else:
+					imdb = row[0]
 		self.log("Return imdb: %s", imdb)
 		return imdb
 
@@ -511,16 +506,6 @@ class CommonScraper:
 		for row in rows:
 			percent = int((100 * rows.index(row))/len(rows))
 			pDialog.update(percent, name, self.service)
-			'''resolver = row[0].split("://")
-			if len(resolver) == 1:
-				imdb = row[0]
-			else:
-				url = re.sub('^' + resolver[0] + "://", "", row[0])				
-				self.log("Resolve imdb with: %s", url)
-				imdb = self.getScraperByName(resolver[0])._resolveIMDB(url)
-				if imdb:
-					self.DB.execute("UPDATE rw_movies SET imdb=? WHERE imdb=?", [imdb, row[0]])
-			self.DB.execute("INSERT INTO rw_movie_log(movieid, imdb) VALUES(?,?)", [row[1], imdb])'''
 			imdb = self.resolveIMDB(movieid=row[1])
 			self.DB.execute("INSERT INTO rw_movie_log(movieid, imdb) VALUES(?,?)", [row[1], imdb])
 		pDialog.close()
@@ -555,7 +540,8 @@ class CommonScraper:
 		try:
 			row = self.DB.query("select url FROM rw_showlinks WHERE service=? AND showid=?", [self.service, showid])
 			self._getEpisodes(showid, show, row[0], pDialog, percent, False)
-		except:
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 			pDialog.update(percent, show, self.service)
 			xbmc.sleep(1000)
 
@@ -632,6 +618,7 @@ class CommonScraper:
 		#print "Adding episode: " + name
  		name = self.cleanName(name)
 		season = str(int(season))
+		episode = str(int(episode))
 		try:		
 			row = self.DB.query("SELECT episodeid FROM rw_episodes WHERE showid=? AND season=? AND episode=?", [showid, season, episode])
 			episodeid = int(row[0])
@@ -707,7 +694,7 @@ class CommonScraper:
 		if episodeid:
 			self.log("Getting episode links form %s for episodebyid: %s" % (self.service, episodeid))
 			row = self.DB.query('SELECT url FROM rw_episodelinks WHERE provider=? AND episodeid=? LIMIT 1', [self.service ,episodeid], force_double_array=False)
-			#self.log(row)
+			self.log(row)
 			if row:
 				return row[0]
 			else: 

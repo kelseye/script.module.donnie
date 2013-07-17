@@ -57,8 +57,8 @@ class IcefilmsServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, name)
 				self.addShowToDB(name, href, character, year)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -89,8 +89,8 @@ class IcefilmsServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, name)
 				self.addShowToDB(name, href, character, year)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.update_cache_status("tvshows")
 		self.DB.commit()
 		return True
@@ -110,7 +110,8 @@ class IcefilmsServiceSracper(CommonScraper):
 				text = self.cleanName(link.string)
 				episode = [self.service, text, link['href']]
 				episodes.append(episode)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 			self.DB.commit()
 		return episodes
 
@@ -141,7 +142,8 @@ class IcefilmsServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, show, name)
 				self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -169,8 +171,8 @@ class IcefilmsServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, self.cleanName(name))
 				self.addMovieToDB(name, href, imdb, character, year)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -200,8 +202,8 @@ class IcefilmsServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, self.cleanName(name))
 				self.addMovieToDB(name, href, imdb, character, year)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.update_cache_status("movies")
 		self.DB.commit()
 		return True
@@ -214,6 +216,7 @@ class IcefilmsServiceSracper(CommonScraper):
 			url = directurl
 		else:
 			url = self.getServices(episodeid=episodeid, movieid=movieid)
+			print url
 		if not url:
 			return
 			
@@ -238,7 +241,8 @@ class IcefilmsServiceSracper(CommonScraper):
 			self.args['sec'] = sec
 			self.args['t'] = t		
 			self.cookie = re.search('<cookie>(.+?)</cookie>', mirrorpage).group(1)
-		except: pass
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 		quality_list = soup.findAll("div", { "class" : "ripdiv" })
 		mirror_list = []
 		mirror_ids = []
@@ -254,7 +258,7 @@ class IcefilmsServiceSracper(CommonScraper):
 					#print link
 					provider = self.getProvider(link)
 					if not provider:
-						print "skipping %s" % link
+						#print "skipping %s" % link
 						pass
 					else:
 						self.log(provider + ' - ' + definition)
@@ -285,7 +289,8 @@ class IcefilmsServiceSracper(CommonScraper):
 		self.log('raw_url: %s', raw_url)
 		try:
 			resolved_url = urlresolver.HostedMediaFile(url=raw_url).resolve()
-		except: pass
+		except Exception, e:
+			self.log("********urlresolver Error: %s, %s" % (self.service, e))
 
 		if not resolved_url:
 			self.log('Unable to resolve using urlresolver')
