@@ -460,9 +460,12 @@ class CommonScraper:
 		self.log("Resolved url: %s", resolved_url)
 		return resolved_url
 	
-	def resolveIMDB(self, movieid=None, showid=None):
+	def resolveIMDB(self, movieid=None, showid=None, silent=False):
 		self.log("Resolving imdb", level=0)
 		imdb=''
+		if not silent:
+			pDialog = xbmcgui.DialogProgress()
+			pDialog.create('Resolving IMDB IDs')
 		if movieid:
 			row = self.DB.query("SELECT imdb from rw_movies WHERE movieid=?", [movieid], force_double_array = False)
 			resolver = row[0].split("://")
@@ -493,6 +496,9 @@ class CommonScraper:
 						self.log("********Donnie Error: %s, %s" % (self.service, e))
 				else:
 					imdb = row[0]
+		if not silent:
+			pDialog.update(100, '', '')
+			pDialog.close()
 		self.log("Return imdb: %s", imdb)
 		return imdb
 

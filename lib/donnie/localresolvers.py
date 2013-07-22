@@ -12,8 +12,9 @@ class localresolver():
 		if REG:
 			self.REG=REG
 		self.resolved_url = ''
-		self.data_path = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.theroyalwe'), '')
+		self.data_path = os.path.join(xbmc.translatePath('special://profile/addon_data/script.module.donnie'), '')
 		self.cookie_path = os.path.join(xbmc.translatePath(self.data_path + 'cookies'), '')
+		self.puzzle_img = os.path.join(self.data_path, "puzzle.png")
 		try:
 			self.LOGGING_LEVEL = self.getSetting('logging-level')
 		except:
@@ -107,14 +108,16 @@ class localresolver():
 
 		
 		try:
-			frame = re.search("<div style='width:80px;height:26px;font:bold 13px Arial;background:#ccc;text-align:left;direction:ltr;'>(.+?)</div>", html).group(1)
+			'''frame = re.search("<div style='width:80px;height:26px;font:bold 13px Arial;background:#ccc;text-align:left;direction:ltr;'>(.+?)</div>", html).group(1)
 			import HTMLParser
 			h = HTMLParser.HTMLParser()
 			regex = ur":(\d+)px;padding-top:\d{1,2}px;'>(.+?);"
 			codes = re.findall(regex, frame)
 			code = ''
 			for e in sorted(codes,  key=lambda s: int(s[0])):
-				code = code + h.unescape(str(e[1])+';')
+				code = code + h.unescape(str(e[1])+';')'''
+
+
 			op = 'download2'
 			btn_download = 'Continue'
 	
@@ -123,7 +126,18 @@ class localresolver():
 			method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
 			method_premium = re.search('<input type="hidden" name="method_premium" value="(.*?)">', html).group(1)
 			down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
-			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'method_premium': method_premium, 'down_direct': down_direct, 'btn_download': btn_download, 'code': code}
+			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'method_premium': method_premium, 'down_direct': down_direct, 'btn_download': btn_download}
+
+			captchaimg = re.search('<script type="text/javascript" src="(http://www.google.com.+?)">', html)
+			if captchaimg:
+				#dialog.close()
+				html = net.http_GET(captchaimg.group(1)).content
+				part = re.search("challenge \: \\'(.+?)\\'", html)
+				captchaimg = 'http://www.google.com/recaptcha/api/image?c='+part.group(1)
+				open(self.puzzle_img, 'wb').write(net.http_GET(captchaimg).content)
+				solution = self.getCapText()
+
+			data.update({'recaptcha_challenge_field':part.group(1),'recaptcha_response_field':solution})
 
 			self.log('MegaRelease - Requesting POST URL: %s DATA: %s', (self.url, data))
 			html = net.http_POST(self.url, data).content
