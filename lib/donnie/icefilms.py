@@ -359,6 +359,7 @@ class IcefilmsServiceSracper(CommonScraper):
 		islem = re.search('Hosted by LemUploads', str(link))
 		ishuge = re.search('Hosted by HugeFiles', str(link))
 		isentero = re.search('Hosted by EntroUpload', str(link))
+		isepic = re.search('Hosted by EpicShare', str(link))
 
                 if is2shared:
 			enabled = self.checkProviders('2shared.com')
@@ -405,6 +406,9 @@ class IcefilmsServiceSracper(CommonScraper):
                 elif isentero:
 			enabled = self.checkProviders('entroupload.com')
                 	opt=opt+': entroupload.com'
+                elif isepic:
+			enabled = self.checkProviders('epicshare.net')
+                	opt=opt+': epicshare.net'
 		if not enabled:
 			return False
 		return opt

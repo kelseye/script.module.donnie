@@ -44,6 +44,7 @@ class localresolver():
 		elif self.host == 'hugefiles.net': self.resolve_hugefiles()
 		elif self.host == 'entroupload.com': self.resolve_entroupload()
 		elif self.host == 'movreel.com': self.resolve_movreel()
+		elif self.host == 'epicshare.net': self.resolve_epicshare()
 		return self.resolved_url
 
 
@@ -51,6 +52,7 @@ class localresolver():
 		print "Validating: %s" % self.url
 		if re.match('http://(www.)?movreel.com/', self.url): return 'movreel.com'
 		elif re.match('http://(www.)?180upload.com/', self.url): return '180upload.com'
+		elif re.match('http://(www.)?epicshare.net/', self.url): return 'epicshare.net'
 		elif re.match('http://(www.)?vidhog.com/', self.url): return 'vidhog.com'
 		elif re.match('http://(www.)?hugefiles.net/', self.url): return 'hugefiles.net'
 		elif re.match('http://(www.)?entroupload.com/', self.url): return 'entroupload.com'
@@ -108,16 +110,6 @@ class localresolver():
 
 		
 		try:
-			'''frame = re.search("<div style='width:80px;height:26px;font:bold 13px Arial;background:#ccc;text-align:left;direction:ltr;'>(.+?)</div>", html).group(1)
-			import HTMLParser
-			h = HTMLParser.HTMLParser()
-			regex = ur":(\d+)px;padding-top:\d{1,2}px;'>(.+?);"
-			codes = re.findall(regex, frame)
-			code = ''
-			for e in sorted(codes,  key=lambda s: int(s[0])):
-				code = code + h.unescape(str(e[1])+';')'''
-
-
 			op = 'download2'
 			btn_download = 'Continue'
 	
@@ -203,7 +195,30 @@ class localresolver():
 			print '**** 180Upload Error occured: %s' % e
 		self.resolved_url = resolved_url
 
-
+	def resolve_epicshare(self):
+		resolved_url = ''
+		self.log('EpicShare - Requesting GET URL: %s', self.url)
+		html = net.http_GET(self.url).content
+		try:
+			puzzle_img = os.path.join(self.data_path, "puzzle.png")
+			data = {}
+       			r = re.findall(r'type="hidden" name="(.+?)" value="(.+?)">', html)
+			for name, value in r:
+                		data[name] = value
+			solvemedia = re.search('<iframe src="(http://api.solvemedia.com.+?)"', html)
+			if solvemedia:
+				html = net.http_GET(solvemedia.group(1)).content
+				hugekey=re.search('id="adcopy_challenge" value="(.+?)">', html).group(1)
+           			open(puzzle_img, 'wb').write(net.http_GET("http://api.solvemedia.com%s" % re.search('<img src="(.+?)"', html).group(1)).content)
+				solution = self.getCapText()
+			if solution:
+               			data.update({'adcopy_challenge': hugekey,'adcopy_response': solution})
+			html = net.http_POST(self.url, data).content
+			link = re.search('<a id="lnk_download"  href="(.+?)">', html)
+			resolved_url = link.group(1)
+		except Exception, e:
+			print '**** EpicShare Error occured: %s' % e
+		self.resolved_url = resolved_url
 	def resolve_vidhog(self):
 		resolved_url = ''
 		try:
