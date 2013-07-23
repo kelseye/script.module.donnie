@@ -116,8 +116,13 @@ class TubePlusServiceSracper(CommonScraper):
 		pagedata = self.getURL('/'+url, append_base_url=True)
 		if pagedata=='':
 			return False
-		main_title = re.search('main_title = "(.+?)";', pagedata).group(1)
-		movieid = re.search('movieid = "(.+?)";', pagedata).group(1)
+		try:
+			main_title = re.search('main_title = "(.+?)";', pagedata).group(1)
+			movieid = re.search('movieid = "(.+?)";', pagedata).group(1)
+		except:
+			self.log('This show has been taken down')
+			return True
+		
 		soup = BeautifulSoup(pagedata)
 		seasons = soup.findAll("a", {"class": "season"})
 		for season in seasons:
