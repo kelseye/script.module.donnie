@@ -285,6 +285,9 @@ class CommonScraper:
 			file.write(strm_string)
 			file.close()
 		elif imdb:
+			row = self.DB.query("SELECT movie FROM rw_movies WHERE imdb=? ORDER BY movieid ASC LIMIT 1", [imdb])
+			if row:
+				name = row[0]
 			cleaned = self.CleanFileName(name, False)
 			if self.getBoolSetting('movie_subfolders'):
 				moviedir = os.path.join(xbmc.translatePath(self.MOVIES_PATH + cleaned), '')
