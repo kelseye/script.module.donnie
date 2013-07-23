@@ -148,7 +148,7 @@ class OneChannelServiceSracper(CommonScraper):
 			if not silent:
 				display = "%sx%s %s" % (season, episode, name)
 				pDialog.update(percent, show, display)
-			self.addEpisodeToDB(showid, show, name, season, episode, self.base_url + href, createFiles=createFiles)
+			self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
 		self.DB.commit()
 		return True
 
@@ -329,10 +329,7 @@ class OneChannelServiceSracper(CommonScraper):
 				return cached
 
 		self.log("Locating streams for provided by service: %s", self.service)
-		if episodeid:
-			pagedata = self.getURL(url, append_base_url=False)
-		else:
-			pagedata = self.getURL(url, append_base_url=True)	
+		pagedata = self.getURL(url, append_base_url=True)	
 		if pagedata=='':
 			return
 		#print pagedata

@@ -17,8 +17,8 @@ class WarezTugaServiceSracper(CommonScraper):
 		self.service='wareztuga'
 		self.name = 'wareztuga.tv'
 		self.raiseError = False
-		self.referrer = 'http://www.wareztuga.me/login.php'
-		self.base_url = 'http://www.wareztuga.me/'
+		self.referrer = 'http://www.wareztuga.tv/login.php'
+		self.base_url = 'http://www.wareztuga.tv/'
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 		self.provides = []
 		self._episodes = []
@@ -36,10 +36,10 @@ class WarezTugaServiceSracper(CommonScraper):
 		response = -1
 		try:
 			headers = {
-				'Host' : 'www.wareztuga.me', 
+				'Host' : 'www.wareztuga.tv', 
 				'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:10.0a1) Gecko/20111029 Firefox/10.0a1',
 				'X-Requested-With' : 'XMLHttpRequest',
-				'Referer' : 'http://www.wareztuga.me/login.php'
+				'Referer' : 'http://www.wareztuga.tv/login.php'
 			}
 			response = net.http_GET(loginurl,headers=headers).content
 			self.log("Wareztuga response: %s", response)
@@ -67,10 +67,10 @@ class WarezTugaServiceSracper(CommonScraper):
 		print url
 		try:
 			headers = {
-				'Host' : 'www.wareztuga.me', 
+				'Host' : 'www.wareztuga.tv', 
 				'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:10.0a1) Gecko/20111029 Firefox/10.0a1',
 				'X-Requested-With' : 'XMLHttpRequest',
-				'Referer' : 'http://www.wareztuga.me/login.php'
+				'Referer' : 'http://www.wareztuga.tv/login.php'
 			}
 			response = net.http_GET(url,headers=headers).content
 			return response
@@ -286,7 +286,7 @@ class WarezTugaServiceSracper(CommonScraper):
 			if not silent:
 				display = "%sx%s %s" % (season, episode, name)
 				pDialog.update(percent, show, display)
-			self.addEpisodeToDB(showid, show, name, season, episode, self.base_url + href, createFiles=createFiles)
+			self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
 
 	def _getStreams(self, episodeid=None, movieid=None):
 		streams = []
@@ -307,10 +307,7 @@ class WarezTugaServiceSracper(CommonScraper):
 				return cached
 		self.login_wareztuga()
 		self.log("Locating streams for provided by service: %s", self.service)
-		if episodeid:
-			pagedata = self.getURL(url, append_base_url=False)
-		else:
-			pagedata = self.getURL(url, append_base_url=True)		
+		pagedata = self.getURL(url, append_base_url=True)		
 		if pagedata=='':
 			return
 		soup = BeautifulSoup(pagedata)
@@ -343,12 +340,6 @@ class WarezTugaServiceSracper(CommonScraper):
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = 'putlocker.com'
-
-		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
-			"SELECT ?, ?, priority " \
-			"FROM rw_providers " \
-			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])'''
 
 		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
 			"SELECT ?, ?, priority, ? " \
