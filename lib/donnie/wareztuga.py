@@ -164,16 +164,19 @@ class WarezTugaServiceSracper(CommonScraper):
 		divs = soup.findAll('div', {'class' : 'thumb thumb-serie'});
 		findYear = re.compile('</span>(.+?)<span>')
 		for div in divs:
-			show = div.parent.parent
-			year = show.find('span', {'class' : 'year'})
-			year = findYear.search(str(year)).group(1)
-			title = div['title']
-			title = "%s (%s)" % (title, year)
-			href = str(div.find('a')['href'])
-			character = self.getInitialChr(title)
-			if not silent:
-				pDialog.update(percent, self.service + ' page ' + str(page), title)
-			self.addShowToDB(title, href, character, year)
+			try:
+				show = div.parent.parent
+				year = show.find('span', {'class' : 'year'})
+				year = findYear.search(str(year)).group(1)
+				title = div['title']
+				title = "%s (%s)" % (title, year)
+				href = str(div.find('a')['href'])
+				character = self.getInitialChr(title)
+				if not silent:
+					pDialog.update(percent, self.service + ' page ' + str(page), title)
+				self.addShowToDB(title, href, character, year)
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -184,19 +187,22 @@ class WarezTugaServiceSracper(CommonScraper):
 		if pagedata=='':
 			return False
 		soup = BeautifulSoup(pagedata)
-		seasons = soup.findAll('div', {'class' : 'season'})
-		lastseason = seasons[len(seasons)-1].find('a').string
-		episodes = soup.findAll('div', {'class' : 'episode-number'})
-		self._getEpisodesBySeason(showid, show, "1", episodes, pDialog, percent, silent)
-		if len(seasons) > 1:
-			for season in range(2,len(seasons)+1):
-				season_url = url + '&season=' + str(season)
-				pagedata = self.getURL(season_url, append_base_url=True)
-				if pagedata=='':
-					return False
-				soup = BeautifulSoup(pagedata)
-				episodes = soup.findAll('div', {'class' : 'episode-number'})			
-				self._getEpisodesBySeason(showid, show, str(season), episodes, pDialog, percent, silent, createFiles=createFiles)
+		try:
+			seasons = soup.findAll('div', {'class' : 'season'})
+			lastseason = seasons[len(seasons)-1].find('a').string
+			episodes = soup.findAll('div', {'class' : 'episode-number'})
+			self._getEpisodesBySeason(showid, show, "1", episodes, pDialog, percent, silent)
+			if len(seasons) > 1:
+				for season in range(2,len(seasons)+1):
+					season_url = url + '&season=' + str(season)
+					pagedata = self.getURL(season_url, append_base_url=True)
+					if pagedata=='':
+						return False
+					soup = BeautifulSoup(pagedata)
+					episodes = soup.findAll('div', {'class' : 'episode-number'})			
+					self._getEpisodesBySeason(showid, show, str(season), episodes, pDialog, percent, silent, createFiles=createFiles)
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 

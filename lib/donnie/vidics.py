@@ -85,7 +85,7 @@ class VidicsServiceSracper(CommonScraper):
 				character = self.getInitialChr(name)
 				self.addShowToDB(name, href, character, year, genres)
 			except Exception, e:
-				self.log('**** Malformed entry:%s ' % e)
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 			
 
 		if page == 1:
@@ -138,7 +138,7 @@ class VidicsServiceSracper(CommonScraper):
 						pDialog.update(percent, show, display)
 					self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
 			except Exception, e:
-				self.log('**** Malformed entry:%s ' % e)
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()	
 		return True
 
@@ -201,7 +201,7 @@ class VidicsServiceSracper(CommonScraper):
 					pDialog.update(percent, self.service + ' page: ' + str(page), name)
 				self.addMovieToDB(name, href, self.service + '://' + href, character, year, genres)			
 			except Exception, e:
-				self.log('**** Malformed entry:%s ' % e)
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 
 		if page == 1:
 			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'movies'])
@@ -256,12 +256,6 @@ class VidicsServiceSracper(CommonScraper):
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = re.search('- (.+?)$', link).group(1)	
-		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
-			"SELECT ?, ?, priority " \
-			"FROM rw_providers " \
-			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])'''
-
 		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
 			"SELECT ?, ?, priority, ? " \
 			"FROM rw_providers " \

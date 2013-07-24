@@ -87,7 +87,8 @@ class SimplyMoviesServiceSracper(CommonScraper):
 				genres = data['Genre'].split(', ')
 				character = self.getInitialChr(data['Title'])
 				self.addShowToDB(title, href, character, data['Year'], genres)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 
 		self.DB.commit()
 		return True
@@ -131,8 +132,8 @@ class SimplyMoviesServiceSracper(CommonScraper):
 					display = "%sx%s %s" % (season, episode, title)
 					pDialog.update(0, show, display)
 				self.addEpisodeToDB(showid, show, title, season, episode, href, createFiles=createFiles)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 			try:
 				season = re.search('<h3>Season (\d{1,3})</h3>', str(p)).group(1)
 			except: pass
@@ -203,7 +204,8 @@ class SimplyMoviesServiceSracper(CommonScraper):
 				imdb = re.search('http://www.imdb.com/title/(.+?)/', imdb).group(1)
 				character = self.getInitialChr(title)
 				self.addMovieToDB(title, href, imdb, character, year, genres)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 
 		self.DB.commit()
 		return True
@@ -240,7 +242,8 @@ class SimplyMoviesServiceSracper(CommonScraper):
 				self.getStreamByPriority('SimplyMovies - ' + host, self.service + '://' + raw_url)
 				if self.ENABLE_MIRROR_CACHING:
 						self.cacheStreamLink(cache_url, 'SimplyMovies - ' + host, self.service + '://' + raw_url)
-		except: pass
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 
 

@@ -96,8 +96,8 @@ class OneChannelServiceSracper(CommonScraper):
 				self.addShowToDB(name, href, character, year, genres)
 				if not silent:
 					pDialog.update(percent, self.service + ' page: ' + str(page), name)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 			
 		if page == 1:
 			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'tvshows'])
@@ -134,21 +134,24 @@ class OneChannelServiceSracper(CommonScraper):
 	
 		divs = soup.findAll("div", {"class" : "tv_episode_item"})
 		for div in divs:
-			a = div.find('a')
-			href = a['href']
-			season = re.search('season-(\d)+', href).group(0)
-			season = season.replace('season-', '')
-			episode = re.search('episode-(\d)+', href).group(0)
-			episode = episode.replace('episode-', '').zfill(2)
 			try:
-				name = a.find('span').string
-				name = name[2:len(name)]
-			except:
-				name = " Episode " + episode
-			if not silent:
-				display = "%sx%s %s" % (season, episode, name)
-				pDialog.update(percent, show, display)
-			self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
+				a = div.find('a')
+				href = a['href']
+				season = re.search('season-(\d)+', href).group(0)
+				season = season.replace('season-', '')
+				episode = re.search('episode-(\d)+', href).group(0)
+				episode = episode.replace('episode-', '').zfill(2)
+				try:
+					name = a.find('span').string
+					name = name[2:len(name)]
+				except:
+					name = " Episode " + episode
+				if not silent:
+					display = "%sx%s %s" % (season, episode, name)
+					pDialog.update(percent, show, display)
+				self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -295,8 +298,7 @@ class OneChannelServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, self.service + ': page ' + str(page), title)
 			except Exception, e:
-				print '******HTTP ERROR: %s' % e
-				pass
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		if page == 1:
 			self.DB.execute("DELETE FROM rw_update_status WHERE provider=? and identifier=?", [self.service, 'movies'])
 		else:		

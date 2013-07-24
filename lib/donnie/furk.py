@@ -135,17 +135,13 @@ class FurkServiceSracper(CommonScraper):
 					else :
 						unit = 'MB'
 					self.getStreamByPriority('Furk - %s ([COLOR blue]%s %s[/COLOR])' %(name, size, unit), self.service + '://' + raw_url)
-		except: pass
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = 'furk.net'
-		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
-			"SELECT ?, ?, priority " \
-			"FROM rw_providers " \
-			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])'''
 		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
 			"SELECT ?, ?, priority, ? " \
 			"FROM rw_providers " \
@@ -189,7 +185,8 @@ class FurkServiceSracper(CommonScraper):
 			if file_select < 0:
 				return resolved_url
 			resolved_url = str(t_options[file_select])
-		except: pass
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.log("Furk retruned: %s", resolved_url, level=0)
 		return resolved_url
 

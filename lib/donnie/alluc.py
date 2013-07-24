@@ -56,7 +56,8 @@ class AllucServiceSracper(CommonScraper):
 					pDialog.update(percent, url, name)
 				
 				self.addShowToDB(name, href, character, year)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -86,7 +87,8 @@ class AllucServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, name)
 				self.addShowToDB(name, href, character, year)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.update_cache_status("tvshows")
 		self.DB.commit()
 		return True
@@ -116,7 +118,8 @@ class AllucServiceSracper(CommonScraper):
 					if not silent:
 						pDialog.update(percent, show, name)
 					self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -142,7 +145,8 @@ class AllucServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, name)
 				self.addMovieToDB(name, href, self.service + '://' + href, character, year)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -169,8 +173,8 @@ class AllucServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, self.cleanName(name))
 				self.addMovieToDB(name, href, imdb, character, year)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.update_cache_status("movies")
 		self.DB.commit()
 		return True

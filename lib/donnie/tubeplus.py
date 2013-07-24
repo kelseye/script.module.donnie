@@ -56,7 +56,8 @@ class TubePlusServiceSracper(CommonScraper):
 						pDialog.update(percent, url, name)
 				
 				self.addShowToDB(name, href, character, year)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -86,7 +87,8 @@ class TubePlusServiceSracper(CommonScraper):
 				if not silent:
 					pDialog.update(percent, url, name)
 				self.addShowToDB(name, href, character, year)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.update_cache_status("tvshows")
 		self.DB.commit()
 		return True
@@ -107,8 +109,8 @@ class TubePlusServiceSracper(CommonScraper):
 				title = self.cleanName("%s %s" % (name, title))
 				episode = [self.service, title, show['href']]
 				episodes.append(episode)
-			except:
-				pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		return episodes
 
 	def _getEpisodes(self, showid, show, url, pDialog, percent, silent, createFiles=True):
@@ -139,7 +141,8 @@ class TubePlusServiceSracper(CommonScraper):
 					if not silent:
 						pDialog.update(percent, show, name)
 					self.addEpisodeToDB(showid, show, name, season, episode, href, createFiles=createFiles)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.DB.commit()
 		return True
 
@@ -183,7 +186,8 @@ class TubePlusServiceSracper(CommonScraper):
 					if not silent:
 						pDialog.update(percent, url, name)
 					self.addMovieToDB(name, href, self.service + '://' + href, character, year)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 
 	def _getRecentMovies(self, silent, DB=None):
 		url = self.base_url + '/browse/movies/Last/ALL/'
@@ -209,7 +213,8 @@ class TubePlusServiceSracper(CommonScraper):
 						pDialog.update(percent, url, name)
 					character = self.getInitialChr(name)
 					self.addMovieToDB(name, href, self.service + '://' + href, character, year)
-			except: pass
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
 		self.update_cache_status("movies")
 		self.DB.commit()
 		return True
@@ -318,11 +323,6 @@ class TubePlusServiceSracper(CommonScraper):
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
 		host = re.search('- (.+?)$', link).group(1)	
-		'''SQL = 	"INSERT INTO rw_stream_list(stream, url, priority) " \
-			"SELECT ?, ?, priority " \
-			"FROM rw_providers " \
-			"WHERE mirror=? and provider=?"
-		self.DB.execute(SQL, [link, stream, host, self.service])'''
 
 		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
 			"SELECT ?, ?, priority, ? " \
