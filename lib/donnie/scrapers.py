@@ -19,6 +19,7 @@ class CommonScraper:
 		self.base_url = ''
 		self.raiseError = False
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
+		self.accept = ''
 		self.provides = []
 		self.AZ = ['1', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z']
 		self.settingsid = settingsid
@@ -323,6 +324,9 @@ class CommonScraper:
 			req = urllib2.Request(url)
 
 	     	req.add_header('User-Agent', self.user_agent)
+		try:
+			req.add_header('Accept', self.accept)
+		except: pass
 	     	if self.referrer:
 		 	req.add_header('Referer', self.referrer)
 

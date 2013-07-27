@@ -20,7 +20,8 @@ class IcefilmsServiceSracper(CommonScraper):
 		self.base_url = 'http://www.icefilms.info'
 		self.raiseError = False
 		self.ajax_url = self.base_url + '/membersonly/components/com_iceplayer/video.phpAjaxResp.php'
-		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
+		self.user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.72 Safari/537.36'
+		self.accept = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
 		self.provides = []
 		self._streams = []
 		self._episodes = []
@@ -98,7 +99,7 @@ class IcefilmsServiceSracper(CommonScraper):
 	def _getNewEpisodes(self, silent=False):
 		self.log("Getting new episodes for %s", self.service)
 		episodes = []
-		pagedata = self.getURL('', append_base_url=True)
+		pagedata = self.getURL('/', append_base_url=True)
 		if pagedata=='':
 			return False
 		
