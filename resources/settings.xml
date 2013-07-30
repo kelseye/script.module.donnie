@@ -18,23 +18,25 @@
 	</category>
 	<category label="Accounts">
 		<setting id="hide-successful-login-messages" type="bool" label="30200" default="true"/>
-		<setting id="movreel-account" type="bool" label="30204" default="false"/>
+		<setting id="movreel-account" type="bool" label="30210" default="false"/>
 		<setting id="movreel-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
 		<setting id="movreel-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)"/>
-		<setting id="wareztuga-username" type="text" label="30206" default=""/>
-		<setting id="wareztuga-password" type="text" label="30207" option="hidden" default=""/>
-		<setting id="furk-username" type="text" label="30208" default=""/>
-		<setting id="furk-password" type="text" label="30209" option="hidden" default=""/>
-		<setting id="furk-apikey" type="text" visible="false" default=""/>
-		<setting id="trakt-account" type="bool" label="Enable Trakt.tv" default="false"/>
+		<setting id="wareztuga-account" type="bool" label="30211" default="false"/>
+		<setting id="wareztuga-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
+		<setting id="wareztuga-password" type="text" label="30202" option="hidden" default="" enable="!eq(-2,false)"/>
+		<setting id="furk-account" type="bool" label="30212" default="false"/>
+		<setting id="furk-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
+		<setting id="furk-password" type="text" label="30202" option="hidden" default="" enable="!eq(-2,false)"/>
+		<setting id="furk-apikey" type="text" label="30203" visible="false" default=""enable="!eq(-3,false)"/>
+		<setting id="trakt-account" type="bool" label="30213" default="false"/>
 		<setting id="trakt-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
 		<setting id="trakt-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)"/>
-		<setting id="trakt-apikey" type="text" label="    Trakt APIKEY" default="be64291aafbbbe62fdc4f3aa0edb4073" visible="false" enable="!eq(-3,false)"/>
-		<setting id="imdb-account" type="bool" label="Enable IMDB" default="false"/>
+		<setting id="trakt-apikey" type="text" label="30203" default="be64291aafbbbe62fdc4f3aa0edb4073" visible="false" enable="!eq(-3,false)"/>
+		<setting id="imdb-account" type="bool" label="30214" default="false"/>
 		<setting id="imdb-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
 		<setting id="imdb-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)"/>
-		<setting id="imdb-list-id" type="text" default="" visible="false"/>
-		<setting id="imdb-user-id" type="text" default="" visible="false"/>
-		<setting label="30205" type="action" action="RunScript($CWD/resources/lib/resolver.py, '')"/>
+		<setting id="imdb-list-id" type="text" label="30204"default="" visible="false"/>
+		<setting id="imdb-user-id" type="text" label="30205"default="" visible="false"/>
+		<setting label="30206" type="action" action="RunScript($CWD/resources/lib/resolver.py, '')"/>
 	</category>
 </settings>
