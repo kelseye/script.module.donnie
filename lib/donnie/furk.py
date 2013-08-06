@@ -100,6 +100,40 @@ class FurkServiceSracper(CommonScraper):
 		    	print '**** Furk Error: %s' % e
 		     	pass
 
+	def getMyFiles(self):
+		api_key = self._login()
+		url = "%sfile/get" % self.base_url
+		params = {"type": "video", "filter": "cached", "api_key": api_key}
+		pagedata = net.http_POST(url, params).content
+		if pagedata=='':
+			return False
+		data = json.loads(pagedata)
+		return data['files']
+
+	def search(self, query):
+		api_key = self._login()
+		url = "%splugins/metasearch" % self.base_url
+		params = {"type": "video", "filter": "cached", "api_key": api_key, "q": query}
+		pagedata = net.http_POST(url, params).content
+		data = json.loads(pagedata)
+		results = []
+		try:
+			files = data['files']
+			for f in files:
+				if f['type'] == 'video':
+					raw_url = f['id']
+					name = f['name']
+					size = int(f['size']) / (1024 * 1024)
+					if size > 2000:
+						size = size / 1024
+						unit = 'GB'
+					else :
+						unit = 'MB'
+					results.append(['Furk - %s ([COLOR blue]%s %s[/COLOR])' %(name, size, unit), raw_url])
+			return results			
+		except Exception, e:
+			self.log("********Donnie Error: %s, %s" % (self.service, e))
+
 	def _getStreams(self, episodeid=None, movieid=None):
 		api_key = self._login()
 		query = ""
