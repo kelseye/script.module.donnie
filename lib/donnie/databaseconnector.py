@@ -389,11 +389,12 @@ class MySQLDatabase(DatabaseClass):
 		try:	
 			import mysql.connector as database
 			self.log("Loading mysql.connector as DB engine")
-			self.DBH = database.connect(self.dbname, self.username, self.password, self.host, buffered=True)
-		except:
-			import MySQLdb as database
-			self.log("Loading MySQLdb as DB engine")
-			self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
+			self.DBH = database.connect(str(self.dbname), str(self.username), str(self.password), str(self.host), buffered=True)
+		except Exception, e:
+			#import MySQLdb as database
+			#print "Loading MySQLdb as DB engine"
+			#self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
+			print '******Donnie SQL ERROR: %s' % e
 		self.DBC = self.DBH.cursor()
 		try:		
 			row = self.query("SELECT version, (version < ?) AS outdated FROM rw_version ORDER BY version DESC LIMIT 1", [DATABASE_VERSION])
@@ -414,11 +415,12 @@ class MySQLDatabase(DatabaseClass):
 		try:	
 			import mysql.connector as database
 			print "Loading mysql.connector as DB engine"
-			self.DBH = database.connect(self.dbname, self.username, self.password, self.host, buffered=True)
-		except:
-			import MySQLdb as database
-			print "Loading MySQLdb as DB engine"
-			self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
+			self.DBH = database.connect(str(self.dbname), str(self.username), str(self.password), str(self.host), buffered=True)
+		except Exception, e:
+			#import MySQLdb as database
+			#print "Loading MySQLdb as DB engine"
+			#self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
+			print '******Donnie SQL ERROR: %s' % e
 		self.DBC = self.DBH.cursor()
 
 
