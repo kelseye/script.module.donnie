@@ -272,7 +272,7 @@ class DatabaseClass:
 					temp = []
 					for index in range(1, len(row)):
 						temp.append(row[index])
-					self.execute("INSERT INTO rw_update_status VALUES(?,?,?,?,?)", temp)
+					self.execute("INSERT INTO rw_update_status VALUES(?,?,?,?,?,?)", temp)
 				last = row[0]
 
 		self.commit()
@@ -386,14 +386,14 @@ class MySQLDatabase(DatabaseClass):
 		if self.LOGGING_LEVEL == 1:
 			IGNORE_UNIQUE_ERRORS = False
 			SILENT_STATEMENTS = False
-		try:	
-			import mysql.connector as database
-			self.log("Loading mysql.connector as DB engine")
-			self.DBH = database.connect(self.dbname, self.username, self.password, self.host, buffered=True)
-		except:
-			import MySQLdb as database
-			self.log("Loading MySQLdb as DB engine")
-			self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
+		#try:	
+		import mysql.connector as database
+		self.log("Loading mysql.connector as DB engine")
+		self.DBH = database.connect(self.dbname, self.username, self.password, self.host, buffered=True)
+		#except:
+		#	import MySQLdb as database
+		#	self.log("Loading MySQLdb as DB engine")
+		#	self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
 		self.DBC = self.DBH.cursor()
 		try:		
 			row = self.query("SELECT version, (version < ?) AS outdated FROM rw_version ORDER BY version DESC LIMIT 1", [DATABASE_VERSION])
@@ -411,14 +411,14 @@ class MySQLDatabase(DatabaseClass):
 			self.initialize()
 
 	def videoLibraryConnect(self):
-		try:	
-			import mysql.connector as database
-			print "Loading mysql.connector as DB engine"
-			self.DBH = database.connect(self.dbname, self.username, self.password, self.host, buffered=True)
-		except:
-			import MySQLdb as database
-			print "Loading MySQLdb as DB engine"
-			self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
+		#try:	
+		import mysql.connector as database
+		print "Loading mysql.connector as DB engine"
+		self.DBH = database.connect(self.dbname, self.username, self.password, self.host, buffered=True)
+		#except:
+		#	import MySQLdb as database
+		#	print "Loading MySQLdb as DB engine"
+		#	self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
 		self.DBC = self.DBH.cursor()
 
 
