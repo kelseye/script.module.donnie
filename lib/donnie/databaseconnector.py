@@ -272,7 +272,7 @@ class DatabaseClass:
 					temp = []
 					for index in range(1, len(row)):
 						temp.append(row[index])
-					self.execute("INSERT INTO rw_update_status VALUES(?,?,?,?,?)", temp)
+					self.execute("INSERT INTO rw_update_status VALUES(?,?,?,?,?,?)", temp)
 				last = row[0]
 
 		self.commit()
@@ -391,9 +391,6 @@ class MySQLDatabase(DatabaseClass):
 			self.log("Loading mysql.connector as DB engine")
 			self.DBH = database.connect(str(self.dbname), str(self.username), str(self.password), str(self.host), buffered=True)
 		except Exception, e:
-			#import MySQLdb as database
-			#print "Loading MySQLdb as DB engine"
-			#self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
 			print '******Donnie SQL ERROR: %s' % e
 		self.DBC = self.DBH.cursor()
 		try:		
@@ -417,9 +414,6 @@ class MySQLDatabase(DatabaseClass):
 			print "Loading mysql.connector as DB engine"
 			self.DBH = database.connect(str(self.dbname), str(self.username), str(self.password), str(self.host), buffered=True)
 		except Exception, e:
-			#import MySQLdb as database
-			#print "Loading MySQLdb as DB engine"
-			#self.DBH=database.connect(host=self.host,user=self.username,passwd=self.password,db=self.dbname)
 			print '******Donnie SQL ERROR: %s' % e
 		self.DBC = self.DBH.cursor()
 
