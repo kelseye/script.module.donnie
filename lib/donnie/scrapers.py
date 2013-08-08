@@ -374,7 +374,7 @@ class CommonScraper:
 				episodes = self.getScraperByName(provider)._getNewEpisodes(silent)
 			except Exception, e:
 				self.log("********Donnie Error: %s, %s" % (self.service, e))
-		return episodes
+			return episodes
 		self.log("Getting New Release Episodes")
 
 		for index in range(0, len(self.activeScrapers)):

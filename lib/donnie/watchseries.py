@@ -90,7 +90,7 @@ class WatchSeriesServiceSracper(CommonScraper):
 	
 		for show in shows:			
 			try: 
-				print show
+				#print show
 				title = show.string
 				title = self.cleanName(title)
 				episode = [self.service, title, show['href']]
