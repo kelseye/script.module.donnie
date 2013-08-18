@@ -60,7 +60,7 @@ class Vfs:
 			xbmc.log('******** VFS rmdir error: %s does not exist' % path)
 			return False
 		if not quiet:
-			msg = 'Confirmation'
+			msg = 'Remove Directory'
 			msg2 = 'Please confirm directory removal!'
 			if not self.confirm(msg, msg2, path): return False
 		try:		
