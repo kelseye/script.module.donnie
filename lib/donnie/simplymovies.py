@@ -286,12 +286,15 @@ class SimplyMoviesServiceSracper(CommonScraper):
 			streams.append(data['url240'])
 			options.append('240p')
 		except: pass
-		dialog = xbmcgui.Dialog()
+		if self.REG.getBoolSetting('prefer-hd'):
+			resolved_url = streams[0][0]
+		else:
+			dialog = xbmcgui.Dialog()
 
-		stream_select = dialog.select('Select quality', options)
-		if stream_select < 0:
-			return False
-		resolved_url = streams[stream_select][0]
+			stream_select = dialog.select('Select quality', options)
+			if stream_select < 0:
+				return False
+			resolved_url = streams[stream_select][0]
 
 		return resolved_url
 

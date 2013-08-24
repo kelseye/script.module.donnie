@@ -17,8 +17,8 @@ class WarezTugaServiceSracper(CommonScraper):
 		self.service='wareztuga'
 		self.name = 'wareztuga.tv'
 		self.raiseError = False
-		self.referrer = 'http://www.wareztuga.tv/login.php'
-		self.base_url = 'http://www.wareztuga.tv/'
+		self.referrer = 'http://www.%s/login.php' % self.REG.getSetting('wareztuga-base-url')
+		self.base_url = 'http://www.%s/' % self.REG.getSetting('wareztuga-base-url')
 		self.user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
 		self.provides = []
 		self._episodes = []
@@ -32,14 +32,15 @@ class WarezTugaServiceSracper(CommonScraper):
 		login = self.getSetting('wareztuga-username')
 		password = self.getSetting('wareztuga-password')
 		cookiejar = os.path.join(self.cookie_path,'wareztuga.lwp')
+		#self.base_url = self.REG.getSetting('wareztuga-base-url')
 		loginurl='%slogin.ajax.php?username=%s&password=%s' % (self.base_url, login, password)
 		response = -1
 		try:
 			headers = {
-				'Host' : 'www.wareztuga.tv', 
+				'Host' : 'www.%s' % self.REG.getSetting('wareztuga-base-url'), 
 				'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:10.0a1) Gecko/20111029 Firefox/10.0a1',
 				'X-Requested-With' : 'XMLHttpRequest',
-				'Referer' : 'http://www.wareztuga.tv/login.php'
+				'Referer' : 'http://www.%s/login.php' % self.REG.getSetting('wareztuga-base-url')
 			}
 			response = net.http_GET(loginurl,headers=headers).content
 			self.log("Wareztuga response: %s", response)
@@ -67,15 +68,15 @@ class WarezTugaServiceSracper(CommonScraper):
 		print url
 		try:
 			headers = {
-				'Host' : 'www.wareztuga.tv', 
+				'Host' : 'www.%s' % self.REG.getSetting('wareztuga-base-url'), 
 				'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:10.0a1) Gecko/20111029 Firefox/10.0a1',
 				'X-Requested-With' : 'XMLHttpRequest',
-				'Referer' : 'http://www.wareztuga.tv/login.php'
+				'Referer' : 'http://www.%s/login.php' % self.REG.getSetting('wareztuga-base-url')
 			}
 			response = net.http_GET(url,headers=headers).content
 			return response
 		except Exception, e:
-		     	print '**** WarezTuga Error: %s' % e
+		     	print '**** WarezTuga HTTP Error: %s' % e
 			return ''
 
 	def getPageCount(self, uri):
@@ -182,7 +183,7 @@ class WarezTugaServiceSracper(CommonScraper):
 
 	def _getEpisodes(self, showid, show, url, pDialog, percent, silent, createFiles=True):
 		self.log("Getting episodes for %s", show)
-		#self.login_wareztuga()
+		self.login_wareztuga()
 		pagedata = self.getURL(url, append_base_url=True)
 		if pagedata=='':
 			return False
@@ -317,15 +318,19 @@ class WarezTugaServiceSracper(CommonScraper):
 		if pagedata=='':
 			return
 		soup = BeautifulSoup(pagedata)
-		try:
-			a = soup.find('a', {'class' : 'putlocker'})
-			raw_url = a['href']
-			self.getStreamByPriority('WarezTuga - ' + 'putlocker.com', self.service + '://' + raw_url)
-			#streams.append(['WarezTuga - ' + 'putlocker.com', self.service + '://' + raw_url])
-			if self.ENABLE_MIRROR_CACHING:
-				self.cacheStreamLink(cache_url, 'WarezTuga - ' + 'putlocker.com', self.service + '://' + raw_url)
-		except Exception, e:
-			self.log("********Donnie Error: %s, %s" % (self.service, e))
+		
+		mirrors = [{'mirror': 'putlocker.com', 'class': 'putlocker'}, {'mirror': 'sockshare.com', 'class': 'vidmega'}]
+		for mirror in mirrors:
+			try:
+				a = soup.find('a', {'class' : mirror['class']})
+				raw_url = a['href']
+				if len(raw_url) > 0:
+					self.getStreamByPriority('WarezTuga - ' + mirror['mirror'], self.service + '://' + raw_url)
+					if self.ENABLE_MIRROR_CACHING:
+						self.cacheStreamLink(cache_url, 'WarezTuga - ' + mirror['mirror'], self.service + '://' + raw_url)
+			except Exception, e:
+				self.log("********Donnie Error: %s, %s" % (self.service, e))
+
 		self.DB.commit()
 		#return streams
 
@@ -333,8 +338,9 @@ class WarezTugaServiceSracper(CommonScraper):
 		import urlresolver
 		raw_url = stream.replace(self.service + '://', '')
 		resolved_url = ''
+		print raw_url
 		try:
-			raw_url = re.search('http://www.putlocker.com/file/([0-9]|[A-Z])+', raw_url).group(0)
+			raw_url = re.search('http://www.(putlocker|sockshare).com/file/([0-9]|[A-Z])+', raw_url).group(0)
 			resolved_url = urlresolver.HostedMediaFile(url=raw_url).resolve()
 		except Exception, e:
 			self.log("********Donnie Error: %s, %s" % (self.service, e))
@@ -345,7 +351,9 @@ class WarezTugaServiceSracper(CommonScraper):
 
 	def getStreamByPriority(self, link, stream):
 		self.log(link)
-		host = 'putlocker.com'
+		
+		#host = 'putlocker.com'
+		host = re.search('- (.+?)$', link).group(1)
 
 		SQL = 	"INSERT INTO rw_stream_list(stream, url, priority, machineid) " \
 			"SELECT ?, ?, priority, ? " \
@@ -355,7 +363,8 @@ class WarezTugaServiceSracper(CommonScraper):
 
 	def _getServicePriority(self, link):
 		self.log(link)
-		host = 'putlocker.com'
+		#host = 'putlocker.com'
+		host = re.search('- (.+?)$', link).group(1)
 		row = self.DB.query("SELECT priority FROM rw_providers WHERE mirror=? and provider=?", [host, self.service])
 		return row[0]
 

@@ -40,7 +40,7 @@ class Vfs:
 
 	def mkdir(self, path, recursive=False):
 		if self.exists(path):
-			xbmc.log('******** VFS mkdir error: %s exists' % path)
+			xbmc.log('******** VFS mkdir notice: %s exists' % path)
 			return False
 		if recursive:
 			try:
@@ -57,7 +57,7 @@ class Vfs:
 
 	def rmdir(self, path, quiet=False):
 		if not self.exists(path):
-			xbmc.log('******** VFS rmdir error: %s does not exist' % path)
+			xbmc.log('******** VFS rmdir notice: %s does not exist' % path)
 			return False
 		if not quiet:
 			msg = 'Remove Directory'
@@ -70,7 +70,7 @@ class Vfs:
 
 	def rm(self, path, quiet=False, recursive=False):
 		if not self.exists(path):
-			xbmc.log('******** VFS rmdir error: %s does not exist' % path)
+			xbmc.log('******** VFS rmdir notice: %s does not exist' % path)
 			return False
 		if not quiet:
 			msg = 'Confirmation'

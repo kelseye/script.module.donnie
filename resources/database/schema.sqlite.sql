@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS rw_temp_episodes ( "tempid" INTEGER  PRIMARY KEY AUTO
 
 CREATE TABLE IF NOT EXISTS rw_episode_cache("cachid" INTEGER PRIMARY KEY AUTOINCREMENT, "showid" integer, "cached" timestamp default current_timestamp, UNIQUE (showid) ON CONFLICT REPLACE );
 
+CREATE TABLE IF NOT EXISTS "rw_search_history" ( "searchid" INTEGER PRIMARY KEY AUTOINCREMENT,  "type" TEXT,  "query" TEXT);
+
 CREATE VIEW IF NOT EXISTS rw_cache_status AS SELECT type, provider, (((julianday('now') - 2440587.5) - (julianday(ts) - 2440587.5) ) > 7) AS stale FROM rw_update_log;
 
 CREATE VIEW IF NOT EXISTS rw_show_status AS SELECT showid, strftime('%s','now') -  strftime('%s',cached) > 3600 AS stale FROM rw_episode_cache;

@@ -4,6 +4,8 @@ from BeautifulSoup import BeautifulSoup, Tag, NavigableString
 import xbmc,xbmcplugin,xbmcgui,xbmcaddon
 from t0mm0.common.net import Net
 from t0mm0.common.addon import Addon
+from vfs import Vfs
+vfs = Vfs()
 net = Net()
 
 	

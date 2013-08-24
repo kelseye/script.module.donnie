@@ -37,6 +37,7 @@ INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "entroupload.com")
 INSERT INTO rw_providers(provider, mirror) VALUES("icefilms", "epicshare.net");
 
 INSERT INTO rw_providers(provider, mirror) VALUES("wareztuga", "putlocker.com");
+INSERT INTO rw_providers(provider, mirror) VALUES("wareztuga", "sockshare.com");
 
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "putlocker.com");
 INSERT INTO rw_providers(provider, mirror) VALUES("vidics", "sockshare.com");

@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS `rw_stream_list` ( `streamid` int(11) NOT NULL AUTO_I
 
 CREATE TABLE IF NOT EXISTS `rw_temp_episodes` ( `tempid` int(11) NOT NULL AUTO_INCREMENT,  `showname` varchar(255) DEFAULT NULL,  `title` varchar(255) DEFAULT NULL,  `season` int(11) DEFAULT NULL,  `episode` int(11) DEFAULT NULL,  `provider` varchar(45) DEFAULT NULL,  `url` varchar(255) DEFAULT NULL,  `machineid` varchar(125) DEFAULT NULL,  PRIMARY KEY (`tempid`) ) ENGINE=InnoDB;
 
-CREATE TABLE `rw_episode_cache` (`cacheid` int(11) NOT NULL AUTO_INCREMENT, `showid` int(11) NOT NULL, `cached` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`cacheid`), UNIQUE KEY `showid_UNIQUE` (`showid`) ) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS `rw_episode_cache` (`cacheid` int(11) NOT NULL AUTO_INCREMENT, `showid` int(11) NOT NULL, `cached` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`cacheid`), UNIQUE KEY `showid_UNIQUE` (`showid`) ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `rw_search_history` ( `searchid` int(11) NOT NULL AUTO_INCREMENT, `type` varchar(45) DEFAULT NULL, `query` varchar(255) DEFAULT NULL,  PRIMARY KEY (`searchid`) ) ENGINE=InnoDB;
 
 CREATE  OR REPLACE VIEW rw_show_status `theroyalwe`.`rw_show_status` AS SELECT showid, NOW() - cached > 3600 AS stale FROM rw_episode_cache;
 
