@@ -45,6 +45,7 @@ class localresolver():
 		elif self.host == 'entroupload.com': self.resolve_entroupload()
 		elif self.host == 'movreel.com': self.resolve_movreel()
 		elif self.host == 'epicshare.net': self.resolve_epicshare()
+		elif self.host == 'billionuploads.com': self.resolve_billionuploads()
 		return self.resolved_url
 
 
@@ -56,6 +57,7 @@ class localresolver():
 		elif re.match('http://(www.)?vidhog.com/', self.url): return 'vidhog.com'
 		elif re.match('http://(www.)?hugefiles.net/', self.url): return 'hugefiles.net'
 		elif re.match('http://(www.)?entroupload.com/', self.url): return 'entroupload.com'
+		elif re.match('http://(www.)?billionuploads.com/', self.url): return 'billionuploads.com'
 		elif re.match('http://(www.)?(megarelease.org|lemuploads.com)/', self.url): return 'megarelease.org'
 
 	def resolve_hugefiles(self):
@@ -239,4 +241,30 @@ class localresolver():
 		except Exception, e:
 			print '**** VidHog Error occured: %s' % e
 		self.resolved_url = resolved_url
+
+	def resolve_movreel(self):
+		resolved_url = ''
+		self.resolved_url = resolved_url
+
+	def resolve_billionuploads(self):
+		resolved_url = ''
+		try:
+			self.log('BillionUploads - Requesting GET URL: %s', self.url)
+			html = net.http_GET(self.url).content
+			op = 'download2'
+			rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
+			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
+			method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
+			down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
+			captchaimg = re.search('<img src="(http://BillionUploads.com/captchas/.+?)"', html)
+        		#if captchaimg:
+
+			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'down_direct': down_direct}
+			html = net.http_POST(self.url, data).content
+        		resolved_url = re.search('&product_download_url=(.+?)"', html).group(1)
+        		resolved_url = resolved_url + "|referer=" + self.url
+		except Exception, e:
+			print '**** BillionUploads Error occured: %s' % e
+		self.resolved_url = resolved_url
+		
 

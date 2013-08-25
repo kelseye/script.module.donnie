@@ -17,9 +17,6 @@
 		<setting id="library_mysql_pass" type="text" label="30505" option="hidden" default="" enable="!eq(-5,false)"/>
 	</category>
 	<category label="Accounts">
-		<setting id="hide-successful-login-messages" type="bool" label="30200" default="true"/>
-		<setting id="movreel-account" type="bool" label="30210" default="false"/>
-		<setting id="movreel-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
 		<setting id="movreel-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)"/>
 		<setting id="wareztuga-account" type="bool" label="30211" default="false"/>
 		<setting id="wareztuga-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
@@ -37,6 +34,5 @@
 		<setting id="imdb-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)"/>
 		<setting id="imdb-list-id" type="text" label="30204"default="" visible="false"/>
 		<setting id="imdb-user-id" type="text" label="30205"default="" visible="false"/>
-		<setting label="30206" type="action" action="RunScript($CWD/resources/lib/resolver.py, '')"/>
 	</category>
 </settings>
