@@ -33,6 +33,5 @@
 		<setting id="imdb-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)"/>
 		<setting id="imdb-list-id" type="text" label="30204"default="" visible="false"/>
 		<setting id="imdb-user-id" type="text" label="30205"default="" visible="false"/>
-		<setting label="30206" type="action" action="RunScript($CWD/resources/lib/resolver.py, '')"/>
 	</category>
 </settings>

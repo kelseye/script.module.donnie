@@ -115,7 +115,8 @@ class CommonScraper:
 	
 	def readfile(self, path, soup=False):
 		try:
-			file = open(path, 'r')
+			#file = open(path, 'r')
+			file = vfs.open(path, 'r')
 			content=file.read()
 			file.close()
 			if soup:
@@ -129,7 +130,8 @@ class CommonScraper:
 
 	def writefile(self, path, content):
 		try:
-			file = open(path, 'w')
+			#file = open(path, 'w')
+			file = vfs.open(path, 'w')
 			file.write(content)
 			file.close()
 			return True
@@ -157,9 +159,12 @@ class CommonScraper:
 		return self._activeScrapers[index]
 
 	def CreateDirectory(self, dir_path):
-		dir_path = dir_path.strip()
-		if not os.path.exists(dir_path):
-			os.makedirs(dir_path)
+		#dir_path = dir_path.strip()
+		#if not os.path.exists(dir_path):
+		#	os.makedirs(dir_path)
+		vfs.mkdir(dir_path, recursive=True)
+
+
 	def str2bool(self, v):
 		return v.lower() in ("yes", "true", "t", "1")
 
@@ -284,9 +289,10 @@ class CommonScraper:
 			fullpath = os.path.join(seasonpath, filename)
 			strm_string = "plugin://" + self.settingsid + "/?episodeid=" + str(episodeid) + "&mode=10&path="+ urllib.quote(fullpath)
 			#print strm_string	
-			file = open(fullpath,'w')
-			file.write(strm_string)
-			file.close()
+			#file = open(fullpath,'w')
+			#file.write(strm_string)
+			#file.close()
+			self.writefile(fullpath, strm_string)
 		elif imdb:
 			row = self.DB.query("SELECT movie FROM rw_movies WHERE imdb=? ORDER BY movieid ASC LIMIT 1", [imdb])
 			if row:
@@ -299,9 +305,10 @@ class CommonScraper:
 			self.CreateDirectory(moviedir)
 			moviepath = os.path.join(xbmc.translatePath(moviedir), cleaned + '.strm')
 			strm_string = "plugin://" + self.settingsid + "/?movieid=" + str(imdb) + "&mode=10&path="+ urllib.quote(moviepath)
-			file = open(moviepath,'w')
-			file.write(strm_string)
-			file.close()
+			#file = open(moviepath,'w')
+			#file.write(strm_string)
+			#file.close()
+			self.writefile(moviepath, strm_string)
 			return cleaned
 
 	def getURL(self, url, params = None, cookie = None, save_cookie = False, silent = False, append_base_url = True):
