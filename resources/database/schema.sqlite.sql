@@ -42,4 +42,4 @@ CREATE TABLE IF NOT EXISTS "rw_search_history" ( "searchid" INTEGER PRIMARY KEY 
 
 CREATE VIEW IF NOT EXISTS rw_cache_status AS SELECT type, provider, (((julianday('now') - 2440587.5) - (julianday(ts) - 2440587.5) ) > 7) AS stale FROM rw_update_log;
 
-CREATE VIEW IF NOT EXISTS rw_show_status AS SELECT showid, strftime('%s','now') -  strftime('%s',cached) > 3600 AS stale FROM rw_episode_cache;
+CREATE VIEW IF NOT EXISTS rw_show_status AS SELECT showid, strftime('%s','now') -  strftime('%s',cached) > (3600 * 3) AS stale FROM rw_episode_cache;

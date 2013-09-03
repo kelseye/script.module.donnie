@@ -40,6 +40,6 @@ CREATE TABLE IF NOT EXISTS `rw_episode_cache` (`cacheid` int(11) NOT NULL AUTO_I
 
 CREATE TABLE IF NOT EXISTS `rw_search_history` ( `searchid` int(11) NOT NULL AUTO_INCREMENT, `type` varchar(45) DEFAULT NULL, `query` varchar(255) DEFAULT NULL,  PRIMARY KEY (`searchid`) ) ENGINE=InnoDB;
 
-CREATE  OR REPLACE VIEW rw_show_status `theroyalwe`.`rw_show_status` AS SELECT showid, NOW() - cached > 3600 AS stale FROM rw_episode_cache;
+CREATE  OR REPLACE VIEW `rw_show_status` AS SELECT showid, NOW() - cached > (3600 * 3) AS stale FROM rw_episode_cache;
 
 CREATE  OR REPLACE VIEW `rw_cache_status` AS select type, provider, (((now() - ts) / 86400) > 7) AS stale from rw_update_log;
