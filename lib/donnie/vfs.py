@@ -5,6 +5,9 @@ class Vfs:
 	def __init__(self, root='/'):
 		self.root = root
 	
+	def _resolve_path(self, path):
+		return path.replace('/', os.sep)	
+
 	def confirm(self, msg='', msg2='', msg3=''):
 		dialog = xbmcgui.Dialog()
 		return dialog.yesno(msg, msg2, msg3)

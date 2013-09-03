@@ -6,7 +6,53 @@ from BeautifulSoup import BeautifulSoup, Tag, NavigableString
 from t0mm0.common.net import Net
 from t0mm0.common.addon import Addon
 net = Net()
+class NoRedirection(urllib2.HTTPErrorProcessor):
+    	# Stop Urllib2 from bypassing the 503 page.    
+    	def http_response(self, request, response):
+        	code, msg, hdrs = response.code, response.msg, response.info()
 
+        	return response
+    	https_response = http_response
+def custom_range(start, end, step):
+	while start <= end:
+		yield start
+		start += step
+_split = re.compile(r'[\0%s]' % re.escape(''.join([os.path.sep, os.path.altsep or ''])))
+def clean(path):
+    	return _split.sub('/', path)
+def checkwmv(e):
+	s = ""
+    
+
+    	i=[]
+    	u=[[65,91],[97,123],[48,58],[43,44],[47,48]]
+    	for z in range(0, len(u)):
+        	for n in range(u[z][0],u[z][1]):
+            		i.append(chr(n))
+
+
+
+    	t = {}
+	for n in range(0, 64):
+		t[i[n]]=n
+
+
+    	for n in custom_range(0, len(e), 72):
+
+		a=0
+		h=e[n:n+72]
+		c=0
+
+
+        	for l in range(0, len(h)):            
+			f = t.get(h[l], 0)
+			a= (a<<6) + f
+			c = c + 6
+
+            	while c >= 8:
+		        c = c - 8
+		        s = s + chr( (a >> c) % 256 )
+	return s
 class localresolver():
 	def __init__(self, REG=None):
 		if REG:
@@ -217,7 +263,10 @@ class localresolver():
                			data.update({'adcopy_challenge': hugekey,'adcopy_response': solution})
 			html = net.http_POST(self.url, data).content
 			link = re.search('<a id="lnk_download"  href="(.+?)">', html)
+			link2 = link.group(1)
+			link = re.search('&product_download_url=(.+?)$', link2)			
 			resolved_url = link.group(1)
+			
 		except Exception, e:
 			print '**** EpicShare Error occured: %s' % e
 		self.resolved_url = resolved_url
@@ -239,7 +288,7 @@ class localresolver():
 			redirect_url = re.search('(http://.+?)video', response.geturl()).group(1)
 			resolved_url = redirect_url + filename
 		except Exception, e:
-			print '**** VidHog Error occured: %s' % e
+			print '**** VidHog Error occured:checkwmv %s' % e
 		self.resolved_url = resolved_url
 
 	def resolve_movreel(self):
@@ -247,22 +296,62 @@ class localresolver():
 		self.resolved_url = resolved_url
 
 	def resolve_billionuploads(self):
+		
 		resolved_url = ''
 		try:
+			url = self.url
 			self.log('BillionUploads - Requesting GET URL: %s', self.url)
-			html = net.http_GET(self.url).content
-			op = 'download2'
-			rand = re.search('<input type="hidden" name="rand" value="(.+?)">', html).group(1)
-			postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-			method_free = re.search('<input type="hidden" name="method_free" value="(.*?)">', html).group(1)
-			down_direct = re.search('<input type="hidden" name="down_direct" value="(.+?)">', html).group(1)
-			captchaimg = re.search('<img src="(http://BillionUploads.com/captchas/.+?)"', html)
-        		#if captchaimg:
+		
 
-			data = {'op': op, 'rand': rand, 'id': postid, 'referer': self.url, 'method_free': method_free, 'down_direct': down_direct}
-			html = net.http_POST(self.url, data).content
-        		resolved_url = re.search('&product_download_url=(.+?)"', html).group(1)
-        		resolved_url = resolved_url + "|referer=" + self.url
+			import cookielib
+			cj = cookielib.CookieJar()
+			opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj))
+			opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36')]
+			response = opener.open(url).read()
+	 		jschl=re.compile('name="jschl_vc" value="(.+?)"/>').findall(response)
+		        if jschl:
+		            	jschl = jschl[0]    
+		        
+		            	maths=re.compile('value = (.+?);').findall(response)[0].replace('(','').replace(')','')
+
+		            	domain_url = re.compile('(https?://.+?/)').findall(url)[0]
+		            	domain = re.compile('https?://(.+?)/').findall(domain_url)[0]
+		            
+		            	xbmc.sleep(5000)
+		            
+		            	normal = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+		            	normal.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36')]
+		            	final= normal.open(domain_url+'cdn-cgi/l/chk_jschl?jschl_vc=%s&jschl_answer=%s'%(jschl,eval(maths)+len(domain))).read()
+		            
+		            	html = normal.open(url).read()
+				postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
+	       
+		        	video_src_url = 'http://new.billionuploads.com/embed-' + postid + '.html'
+
+
+			puzzle_img = os.path.join(self.data_path, "puzzle.png")
+			data = {}
+			r = re.findall(r'type="hidden" name="(.+?)" value="(.+?)">', html)
+			for name, value in r:
+				data[name] = value
+			solvemedia = re.search('<iframe src="(http://api.solvemedia.com.+?)"', html)
+			if solvemedia:
+				html = net.http_GET(solvemedia.group(1)).content
+				hugekey=re.search('id="adcopy_challenge" value="(.+?)">', html).group(1)
+	   			open(puzzle_img, 'wb').write(net.http_GET("http://api.solvemedia.com%s" % re.search('<img src="(.+?)"', html).group(1)).content)
+				solution = self.getCapText()
+			if solution:
+				data={'op':'video_embed','file_code':postid, 'adcopy_response':solution,'adcopy_challenge':hugekey}
+
+			html = normal.open(video_src_url, urllib.urlencode(data)).read()
+			dll = re.compile('<input type="hidden" id="dl" value="(.+?)">').findall(html)[0]
+		        dl = dll.split('GvaZu')[1]
+		        dl = checkwmv(dl)
+			dl = checkwmv(dl)
+
+			resolved_url = clean(dl)
+			resolved_url = resolved_url[0:len(resolved_url)-1]
+
 		except Exception, e:
 			print '**** BillionUploads Error occured: %s' % e
 		self.resolved_url = resolved_url
