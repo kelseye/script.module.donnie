@@ -338,9 +338,10 @@ class WarezTugaServiceSracper(CommonScraper):
 		import urlresolver
 		raw_url = stream.replace(self.service + '://', '')
 		resolved_url = ''
+		raw_url = raw_url.split('&fh=')[-1]
 		print raw_url
 		try:
-			raw_url = re.search('http://www.(putlocker|sockshare).com/file/([0-9]|[A-Z])+', raw_url).group(0)
+			#raw_url = re.search('http://www.(putlocker|sockshare).com/file/([0-9]|[A-Z])+', raw_url).group(0)
 			resolved_url = urlresolver.HostedMediaFile(url=raw_url).resolve()
 		except Exception, e:
 			self.log("********Donnie Error: %s, %s" % (self.service, e))

@@ -61,15 +61,22 @@ class DatabaseClass:
 				if s is not None and len(s.strip()) > 0:
 					self.execute(s)
 
-	def setWatchedFlag(self, path):
-		self.log("Updating playcount for: %s", path)
+	def getIdFile(self, path):
 		if self.db_type=='mysql':
 			SQL = "SELECT idFile FROM files JOIN path ON files.idPath = path.idPath WHERE CONCAT(path.strPath, files.strFilename) = %s"
 		else:
 			SQL = "SELECT idFile FROM files JOIN path ON files.idPath = path.idPath WHERE path.strPath || files.strFilename = ?"
 		row = self.query(SQL, [path])
+		return row
+
+	def setWatchedFlag(self, path, watched=True):
+		self.log("Updating playcount for: %s", path)
+		row = self.getIdFile(path)
 		if row:
-			self.execute("UPDATE files SET playCount=1 WHERE idFile=?", row)
+			if watched:			
+				self.execute("UPDATE files SET playCount=1 WHERE idFile=?", row)
+			else:
+				self.execute("UPDATE files SET playCount=0 WHERE idFile=?", row)
 			self.commit()
 			return row[0]
 
@@ -77,7 +84,7 @@ class DatabaseClass:
 		meta = None
 		print idFile
 		if media=='tvshow':
-			row = self.query("SELECT tvshow.c00 as showtitle, episode.c00 as episodetitle, tvshow.c06 as posters, episode.c01 as plot, episode.c06 as icon, episode.c09 as length, episode.c12 as seasonnum, episode.c13 as episodenum FROM XBMCFrodoVideo75.episode join tvshow on episode.idShow = tvshow.idShow where episode.idFile=?", [idFile])
+			row = self.query("SELECT tvshow.c00 as showtitle, episode.c00 as episodetitle, tvshow.c06 as posters, episode.c01 as plot, episode.c06 as icon, episode.c09 as length, episode.c12 as seasonnum, episode.c13 as episodenum FROM episode join tvshow on episode.idShow = tvshow.idShow where episode.idFile=?", [idFile])
 
 			try:
 				poster = re.search('<thumb aspect="poster" type="season" season="'+row[6]+'">(.+?)</thumb>', row[2]).group(1)
