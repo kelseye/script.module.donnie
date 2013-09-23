@@ -296,9 +296,45 @@ class localresolver():
 		self.resolved_url = resolved_url
 
 	def resolve_billionuploads(self):
-		
+		url = self.url
 		resolved_url = ''
-		try:
+		import cookielib
+		cj = cookielib.CookieJar()
+		opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj))
+		urllib2.install_opener(opener)
+	
+		html = net.http_GET(url).content
+		jschl=re.compile('name="jschl_vc" value="(.+?)"/>').findall(html)
+		if jschl:
+			jschl = jschl[0]    
+
+			maths=re.compile('value = (.+?);').findall(html)[0].replace('(','').replace(')','')
+
+			domain_url = re.compile('(https?://.+?/)').findall(url)[0]
+			domain = re.compile('https?://(.+?)/').findall(domain_url)[0]
+
+			time.sleep(5)
+
+			normal = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+			normal.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36')]
+			link = domain_url+'cdn-cgi/l/chk_jschl?jschl_vc=%s&jschl_answer=%s'%(jschl,eval(maths)+len(domain))
+			final= normal.open(domain_url+'cdn-cgi/l/chk_jschl?jschl_vc=%s&jschl_answer=%s'%(jschl,eval(maths)+len(domain))).read()
+			html = normal.open(url).read()
+		data = {}
+		r = re.findall(r'type="hidden" name="(.+?)" value="(.+?)">', html)
+		for name, value in r:
+			data[name] = value
+		captchaimg = re.search('<img src="(http://BillionUploads.com/captchas/.+?)"', html)
+		data.update({'submit_btn':''})
+        	data.update({'geekref':'yeahman'})
+		html = net.http_POST(url, data).content
+		dll = re.compile('<input type="hidden" id="dl" value="(.+?)">').findall(html)[0]
+		dl = dll.split('GvaZu')[1]
+		dl = checkwmv(dl)
+		dl = checkwmv(dl)
+		resolved_url = clean(dl)
+		resolved_url = resolved_url[0:len(resolved_url)-1]
+		'''try:
 			url = self.url
 			self.log('BillionUploads - Requesting GET URL: %s', self.url)
 		
@@ -325,9 +361,11 @@ class localresolver():
 		            
 		            	html = normal.open(url).read()
 				postid = re.search('<input type="hidden" name="id" value="(.+?)">', html).group(1)
-	       
+				       
 		        	video_src_url = 'http://new.billionuploads.com/embed-' + postid + '.html'
-
+			else:
+				normal = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+				html = response
 
 			puzzle_img = os.path.join(self.data_path, "puzzle.png")
 			data = {}
@@ -340,8 +378,8 @@ class localresolver():
 				hugekey=re.search('id="adcopy_challenge" value="(.+?)">', html).group(1)
 	   			open(puzzle_img, 'wb').write(net.http_GET("http://api.solvemedia.com%s" % re.search('<img src="(.+?)"', html).group(1)).content)
 				solution = self.getCapText()
-			if solution:
-				data={'op':'video_embed','file_code':postid, 'adcopy_response':solution,'adcopy_challenge':hugekey}
+				if solution:
+					data={'op':'video_embed','file_code':postid, 'adcopy_response':solution,'adcopy_challenge':hugekey}
 
 			html = normal.open(video_src_url, urllib.urlencode(data)).read()
 			dll = re.compile('<input type="hidden" id="dl" value="(.+?)">').findall(html)[0]
@@ -353,7 +391,7 @@ class localresolver():
 			resolved_url = resolved_url[0:len(resolved_url)-1]
 
 		except Exception, e:
-			print '**** BillionUploads Error occured: %s' % e
+			print '**** BillionUploads Error occured: %s' % e'''
 		self.resolved_url = resolved_url
 		
 
